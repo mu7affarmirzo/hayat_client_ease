@@ -1,0 +1,538 @@
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AdminLTE 3 | Advanced form elements</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/bs-stepper/css/bs-stepper.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/dist/css/adminlte.min.css' %}">
+</head>
+<body class="hold-transition layout-top-nav">
+<div class="wrapper">
+    <!-- Navbar -->
+    {% include 'snippets/navbar.html' %}
+    <!-- /.navbar -->
+
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0"> Мастер бронирования</h1>
+                    </div><!-- /.col -->
+
+                </div><!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <div class="content">
+            <div class="container">
+
+
+                <section class="content">
+                    <div class="container-fluid">
+                        <!-- SELECT2 EXAMPLE -->
+                        <div class="card card-default">
+                            <!-- /.card-header -->
+                            <div class="card-body">
+                                <form method="post" action="">
+                                    {% csrf_token %}
+                                    <h5>Пациент</h5>
+                                    <div class="row">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+
+                                                <select class="form-control select2 select2-primary" id="patient-select"
+                                                        name="patient" data-dropdown-css-class="select2-primary"
+                                                        style="width: 100%;">
+                                                    {% for patient in patients %}
+                                                        <option value="{{ patient.id }}">{{ patient.full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <div class="select2-primary">
+                                                    {#                                                    <button class="btn btn-warning">Добавить новый пациент</button>#}
+                                                    {#                                                    <button type="button" class="btn btn-warning" onclick="openNewPatientPopup()">Добавить новый пациент</button>#}
+                                                    <button type="button" class="btn btn-warning" data-toggle="modal"
+                                                            data-target="#modal-default">
+                                                        Добавить новый пациент
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                    </div>
+
+                                    <h5>Комната</h5>
+                                    <div class="row">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <select name="current_room" class="form-control select2 select2-primary"
+                                                        data-dropdown-css-class="select2-primary" style="width: 100%;">
+                                                    {% for room in rooms %}
+                                                        <option value="{{ room.id }}">{{ room.room_number }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                      <span class="input-group-text">
+                                                        <i class="far fa-calendar-alt"></i>
+                                                      </span>
+                                                    </div>
+                                                    <input name="booking_period" type="text"
+                                                           class="form-control float-right" id="reservation">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden" name="start_date" id="start_date">
+                                        <input type="hidden" name="end_date" id="end_date">
+                                        <!-- /.col -->
+                                    </div>
+                                    <!-- /.row -->
+
+                                    <div class="row">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <label>Тип комнаты</label>
+                                                <select class="form-control select2 select2-primary"
+                                                        name="current_room_type"
+                                                        data-dropdown-css-class="select2-primary" style="width: 100%;">
+                                                    {% for room in room_types %}
+                                                        <option value="{{ room.id }}">{{ room.name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <label>Тариф</label>
+                                                <div class="select2-primary">
+                                                    <select class="select2" name="current_tariff"
+                                                            data-dropdown-css-class="select2-primary"
+                                                            style="width: 100%;">
+                                                        {% for tariff in tariffs %}
+                                                            <option value="{{ tariff.id }}">{{ tariff.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                  <input
+                                                    name="is_sick_leave"
+                                                    class="form-check-input"
+                                                    type="checkbox"
+                                                    id="flexCheckDefault"
+                                                  />
+                                                  <label
+                                                    class="form-check-label"
+                                                    for="flexCheckDefault"
+                                                  >
+                                                    Больниычный
+                                                  </label>
+                                                </div>
+                                            </div>
+                                            <!-- /.form-group -->
+                                        </div>
+                                        <!-- /.col -->
+                                    </div>
+
+                                    <button class="btn btn-primary" type="submit">Забронировать</button>
+                                </form>
+                                <!-- /.row -->
+                            </div>
+
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                    <!-- /.container-fluid -->
+                </section>
+
+
+                <div class="modal fade" id="modal-default">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Добавить пациент</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+
+                            <form id="registerPatientForm" method="POST"
+                                  action="">
+                                {% csrf_token %}
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="example_fname">Имя</label>
+                                        <input name="f_name" type="text" class="form-control" id="example_fname"
+                                               placeholder="Отабек">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="example_fname">Фамилия</label>
+                                        <input name="mid_name" type="text" class="form-control" id="example_fname"
+                                               placeholder="Равшанов">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="example_last_name">Отчества</label>
+                                        <input name="l_name" type="text" class="form-control" id="example_last_name"
+                                               placeholder="Ботирович">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="example_phone_nm">Телефон</label>
+                                        <input name="mobile_phone_number" type="text" class="form-control"
+                                               id="example_phone_nm" placeholder="+998901002030">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="example_fname">ПИНФЛ</label>
+                                        <input name="INN" type="text" class="form-control" id="example_inn"
+                                               placeholder="123456789">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="example_phone_nm">Адрес</label>
+                                        <input name="address" type="text" class="form-control " id="example_address"
+                                               placeholder="Ташкентская область, Кибрайский район, городской посёлок Салар, улица Гулимамур, 5/1">
+                                    </div>
+
+
+                                    <div class="col-sm-6">
+                                        <!-- radio -->
+                                        <div class="form-group">
+                                            <div class="custom-control custom-radio">
+                                                <input value='False' class="custom-control-input" type="radio"
+                                                       id="customRadio1" name="gender">
+                                                <label for="customRadio1" class="custom-control-label">Женщина</label>
+                                            </div>
+                                            <div class="custom-control custom-radio">
+                                                <input value='True' class="custom-control-input" type="radio"
+                                                       id="customRadio2" name="gender" checked>
+                                                <label for="customRadio2" class="custom-control-label">Мужчина</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Дата рождения:</label>
+                                        <div class="input-group date" id="reservationdate" data-target-input="nearest">
+                                            <input name="date_of_birth" type="text"
+                                                   class="form-control datetimepicker-input"
+                                                   data-target="#reservationdate"/>
+                                            <div class="input-group-append" data-target="#reservationdate"
+                                                 data-toggle="datetimepicker">
+                                                <div class="input-group-text"><i class="fa fa-calendar"></i></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.card-body -->
+
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                                </div>
+                            </form>
+
+                        </div>
+                        <!-- /.modal-content -->
+                    </div>
+                    <!-- /.modal-dialog -->
+                </div>
+
+
+                <!-- /.row -->
+            </div><!-- /.container-fluid -->
+        </div>
+        <!-- /.content -->
+    </div>
+
+
+    {% include 'snippets/footer.html' %}
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+    </aside>
+    <!-- /.control-sidebar -->
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bs-stepper/js/bs-stepper.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/sweetalert2/sweetalert2.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/toastr/toastr.min.js' %}"></script>
+
+<script>
+    function openNewPatientPopup() {
+        document.getElementById('newPatientModal').style.display = 'block';
+    }
+
+    function closeNewPatientPopup() {
+        document.getElementById('newPatientModal').style.display = 'none';
+    }
+
+    function submitNewPatient() {
+        const form = document.getElementById('newPatientForm');
+        const formData = new FormData(form);
+
+        fetch("", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        }).then(response => response.json()).then(data => {
+            if (data.success) {
+                const patientSelect = document.getElementById('patient-select');
+                const newOption = document.createElement('option');
+                newOption.value = data.patient.id;
+                newOption.text = data.patient.name;
+                patientSelect.add(newOption);
+                patientSelect.value = data.patient.id;
+                closeNewPatientPopup();
+            } else {
+                // Handle validation errors or other issues
+                alert('Error adding new patient');
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            alert('Error adding new patient');
+        });
+    }
+</script>
+
+<!-- Page specific script -->
+<script type="text/javascript">
+    $(document).ready(function () {
+        // Attach a double-click event listener to table rows
+        $('#room-table').on('dblclick', 'tr', function () {
+            // Get the room ID from the data attribute
+            var roomId = $(this).data('room-id');
+
+            // Do something with the room ID
+            console.log('Room ID:', roomId);
+
+            // Example: Send the selected room ID to the server
+        });
+
+        // Optionally, you can add some visual feedback for the selected row
+        $('#room-table').on('dblclick', 'tr', function () {
+            $('#room-table tr').removeClass('selected');
+            $(this).addClass('selected');
+        });
+    });
+</script>
+<style>
+    .selected {
+        background-color: #d0e9c6; /* Example color for selected row */
+    }
+</style>
+
+<script>
+
+    $(function () {
+
+        // When the form is submitted
+        $('form').on('submit', function (e) {
+            // Get the date range value
+            var dateRange = $('#reservation').val();
+            // Split the date range into start and end dates
+            var dates = dateRange.split(' - ');
+            // Set the values of the hidden inputs
+            $('#start_date').val(dates[0]);
+            $('#end_date').val(dates[1]);
+        });
+    });
+
+    $(function () {
+        //Initialize Select2 Elements
+        $('.select2').select2()
+
+        //Initialize Select2 Elements
+        $('.select2bs4').select2({
+            theme: 'bootstrap4'
+        })
+
+        //Datemask dd/mm/yyyy
+        $('#datemask').inputmask('dd/mm/yyyy', {'placeholder': 'dd/mm/yyyy'})
+        //Datemask2 mm/dd/yyyy
+        $('#datemask2').inputmask('mm/dd/yyyy', {'placeholder': 'mm/dd/yyyy'})
+        //Money Euro
+        $('[data-mask]').inputmask()
+
+        //Date picker
+        $('#reservationdate').datetimepicker({
+            format: 'L'
+        });
+
+        //Date and time picker
+        $('#reservationdatetime').datetimepicker({icons: {time: 'far fa-clock'}});
+
+        //Date range picker
+        $('#reservation').daterangepicker()
+        //Date range picker with time picker
+        $('#reservationtime').daterangepicker({
+            timePicker: true,
+            timePickerIncrement: 30,
+            locale: {
+                format: 'MM/DD/YYYY hh:mm A'
+            }
+        })
+        //Date range as a button
+        $('#daterange-btn').daterangepicker(
+            {
+                ranges: {
+                    'Today': [moment(), moment()],
+                    'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                    'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                    'This Month': [moment().startOf('month'), moment().endOf('month')],
+                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+                },
+                startDate: moment().subtract(29, 'days'),
+                endDate: moment()
+            },
+            function (start, end) {
+                $('#reportrange span').html(start.format('MMMM D, YYYY') + ' - ' + end.format('MMMM D, YYYY'))
+            }
+        )
+
+        //Timepicker
+        $('#timepicker').datetimepicker({
+            format: 'LT'
+        })
+
+        //Bootstrap Duallistbox
+        $('.duallistbox').bootstrapDualListbox()
+
+        //Colorpicker
+        $('.my-colorpicker1').colorpicker()
+        //color picker with addon
+        $('.my-colorpicker2').colorpicker()
+
+        $('.my-colorpicker2').on('colorpickerChange', function (event) {
+            $('.my-colorpicker2 .fa-square').css('color', event.color.toString());
+        })
+
+        $("input[data-bootstrap-switch]").each(function () {
+            $(this).bootstrapSwitch('state', $(this).prop('checked'));
+        })
+
+    })
+    // BS-Stepper Init
+    document.addEventListener('DOMContentLoaded', function () {
+        window.stepper = new Stepper(document.querySelector('.bs-stepper'))
+    })
+
+    // DropzoneJS Demo Code Start
+    Dropzone.autoDiscover = false
+
+    // Get the template HTML and remove it from the doumenthe template HTML and remove it from the doument
+    var previewNode = document.querySelector("#template")
+    previewNode.id = ""
+    var previewTemplate = previewNode.parentNode.innerHTML
+    previewNode.parentNode.removeChild(previewNode)
+
+    var myDropzone = new Dropzone(document.body, { // Make the whole body a dropzone
+        url: "/target-url", // Set the url
+        thumbnailWidth: 80,
+        thumbnailHeight: 80,
+        parallelUploads: 20,
+        previewTemplate: previewTemplate,
+        autoQueue: false, // Make sure the files aren't queued until manually added
+        previewsContainer: "#previews", // Define the container to display the previews
+        clickable: ".fileinput-button" // Define the element that should be used as click trigger to select files.
+    })
+
+    myDropzone.on("addedfile", function (file) {
+        // Hookup the start button
+        file.previewElement.querySelector(".start").onclick = function () {
+            myDropzone.enqueueFile(file)
+        }
+    })
+
+    // Update the total progress bar
+    myDropzone.on("totaluploadprogress", function (progress) {
+        document.querySelector("#total-progress .progress-bar").style.width = progress + "%"
+    })
+
+    myDropzone.on("sending", function (file) {
+        // Show the total progress bar when upload starts
+        document.querySelector("#total-progress").style.opacity = "1"
+        // And disable the start button
+        file.previewElement.querySelector(".start").setAttribute("disabled", "disabled")
+    })
+
+    // Hide the total progress bar when nothing's uploading anymore
+    myDropzone.on("queuecomplete", function (progress) {
+        document.querySelector("#total-progress").style.opacity = "0"
+    })
+
+    // Setup the buttons for all transfers
+    // The "add files" button doesn't need to be setup because the config
+    // `clickable` has already been specified.
+    document.querySelector("#actions .start").onclick = function () {
+        myDropzone.enqueueFiles(myDropzone.getFilesWithStatus(Dropzone.ADDED))
+    }
+    document.querySelector("#actions .cancel").onclick = function () {
+        myDropzone.removeAllFiles(true)
+    }
+    // DropzoneJS Demo Code End
+</script>
+</body>
+</html>
