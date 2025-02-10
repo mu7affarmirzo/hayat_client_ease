@@ -61,6 +61,9 @@ class Account(AbstractBaseUser):
     def has_perm(self, perm, obj=None):
         return self.is_admin
 
+    def has_module_perms(self, app_label):
+        return self.is_admin
+
     @property
     def full_name(self):
         try:

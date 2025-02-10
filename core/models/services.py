@@ -18,7 +18,7 @@ class ServiceTypeModel(models.Model):
         return str(self.type)
 
 
-class ServiceMode(models.Model):
+class ServiceModel(models.Model):
     type = models.ForeignKey(ServiceTypeModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='services')
     name = models.CharField(max_length=255)
 
