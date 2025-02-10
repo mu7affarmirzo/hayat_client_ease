@@ -131,7 +131,6 @@
                                     <thead>
                                     <tr>
                                         <th style="width: 10px">#</th>
-                                        <th>Серия</th>
                                         <th>Имя гостя</th>
                                         <th>Забронированное время</th>
                                         <th>Тип услуги</th>
@@ -150,7 +149,6 @@
                                     {% for i in sessions %}
                                         <tr>
                                             <td>{{ i.id }}</td>
-                                            <td>{{ i.series }}</td>
                                             <td>
                                                 {{ i.patient.full_name }}
                                             </td>

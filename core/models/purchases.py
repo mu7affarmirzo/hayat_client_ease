@@ -9,8 +9,9 @@ class SessionModel(models.Model):
     patient = models.ForeignKey(PatientModel, on_delete=models.CASCADE, related_name="sessions")
     massage = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
-    discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    discount = models.PositiveIntegerField(default=0, blank=True, null=True)
+    total_price = models.PositiveIntegerField(default=0, blank=True, null=True)
+    pre_discount_price = models.PositiveIntegerField(default=0, blank=True, null=True)
     is_paid = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True, related_name="created_sessions")
@@ -19,12 +20,9 @@ class SessionModel(models.Model):
 
     def save(self, *args, **kwargs):
         # Calculate total price before saving
-        self.total_price = (self.massage.price * self.quantity) - self.discount
+        self.total_price = int((self.massage.price * self.quantity) * (100 - self.discount)/100)
+        self.pre_discount_price = self.massage.price * self.quantity
         super().save(*args, **kwargs)
-
-    @property
-    def pre_discount_price(self):
-        return self.total_price * self.quantity
 
     @property
     def overall_payed_amount(self):
