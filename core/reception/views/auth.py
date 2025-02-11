@@ -58,29 +58,19 @@ def logout_view(request):
 def main_screen_view(request):
 
     sessions = SessionModel.objects.all()
-    print(sessions)
-
     sessions = paginate_page(request, sessions)
 
-    # target_role = AccountRolesModel.objects.filter(user=request.user)
-    # target_role = target_role.first()
-    # if target_role:
-    #     target_role = target_role.role.name
-    #
-    # user_role_based_redirect = {
-    #     'warehouse': 'warehouse_v2:main_screen',
-    #     'sanatorium.staff': 'sanatorium_staff:main_screen',
-    #     'sanatorium.nurse': 'sanatorium_nurse:main_screen',
-    #     'sanatorium.admin': 'sanatorium_admin:main_screen',
-    #     'sanatorium.doctor': 'sanatorium_doctors:main_screen',
-    # }
-    #
-    # if target_role in user_role_based_redirect:
-    #     print(user_role_based_redirect[target_role])
-    #     return redirect(user_role_based_redirect[target_role])
-    # return redirect('sanatorium_auth:logout')
     context = {'sessions': sessions}
     return render(request, 'reception/main_screen.html', context)
+
+
+def not_paid_list_view(request):
+
+    sessions = SessionModel.objects.filter(is_paid=False)
+    sessions = paginate_page(request, sessions)
+
+    context = {'sessions': sessions}
+    return render(request, 'reception/not_paid_list.html', context)
 
 
 def get_booking_queryset(query=None, stage=None):

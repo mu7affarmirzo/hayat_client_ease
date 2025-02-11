@@ -1,0 +1,573 @@
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hayat Medical Center</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <!-- Ionicons -->
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/bootstrap-colorpicker/css/bootstrap-colorpicker.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/bootstrap4-duallistbox/bootstrap-duallistbox.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/bs-stepper/css/bs-stepper.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/dist/css/adminlte.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/jqvmap/jqvmap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/dist/css/adminlte.min.css' %}">
+    <link rel="stylesheet"
+          href="{% static 'adminlte3_assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/summernote/summernote-bs4.min.css' %}">
+</head>
+<body class="hold-transition layout-top-nav">
+<div class="wrapper">
+    <!-- Navbar -->
+    {% include 'snippets/navbar.html' %}
+    <!-- /.navbar -->
+
+    <!-- Content Wrapper. Contains page content -->
+
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <br>
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3>{{ booking.current_tariff }}</h3>
+
+                                <p>Пакет</p>
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-bag"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>{{ booking.discount }}<sup style="font-size: 20px">%</sup></h3>
+
+                                <p>Скидка</p>
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-pie-graph"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3>{{ booking.paid_amount|intcomma }} сум</h3>
+
+                                <p>Депозит</p>
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-stats-bars"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>{{ total_sum|intcomma }} сум</h3>
+
+                                <p>Долг</p>
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-android-arrow-up "></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                </div>
+                <!-- SELECT2 EXAMPLE -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Бронирование :{{ booking.series }}</h3>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <label for="arrival-date-picker">Время выездa</label>
+                                    <div class="card-tools">
+                                        <div class="input-group input-group-sm" style="width: 150px;">
+                                            {{ booking.end_date }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- /.card-header -->
+                            <div class="card-body">
+
+                                <table class="table table-bordered">
+                                    <thead>
+                                    <tr>
+                                        <th style="width: 10px">#</th>
+                                        <th>Серия</th>
+                                        <th>Имя гостя</th>
+                                        <th>Дата выезда</th>
+                                        <th>Тип комнаты</th>
+                                        <th>Комната</th>
+                                        <th>Время заезда</th>
+                                        <th>Дней</th>
+                                        <th>Статус</th>
+                                    </tr>
+
+                                    </thead>
+
+                                    <tbody id="booking-table-body">
+                                    <tr>
+                                        <td>{{ booking.id }}</td>
+                                        <td>{{ booking.series }}</td>
+                                        <td>
+                                            {{ booking.patient.full_name }}
+                                        </td>
+                                        <td>{{ booking.end_date }}</td>
+                                        <td>
+                                                <span class="badge"
+                                                      style="background-color: {{ booking.current_room_type.color }};">{{ booking.current_room_type }}</span>
+                                        </td>
+                                        <td>{{ booking.current_room.room_number }}</td>
+                                        <td>{{ booking.start_date }}</td>
+                                        <td>{{ booking.duration }}</td>
+                                        <td>
+                                            {% if booking.stage == 'served' %}
+                                                <span class="bg-success badge">Оплачено</span>
+                                            {% elif booking.stage == 'booked' %}
+                                                <span class="bg-primary badge">Забронировано</span>
+                                            {% elif booking.stage == 'arrived' %}
+                                                <span class="bg-blue badge">Прибыл</span>
+                                            {% elif booking.stage == 'cancelled' %}
+                                                <span class="bg-danger badge">Отменено</span>
+                                            {% elif booking.stage == 'settled' %}
+                                                <span class="bg-warning badge">Поселился</span>
+                                            {% else %}
+                                                <span class="bg-danger badge">Не ясно {{ booking.stage }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.card-body -->
+                            <div class="card-footer clearfix">
+                                <ul class="pagination pagination-sm m-0 float-right">
+
+                                    {% if bookings.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.previous_page_number }}">&laquo;</a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for i in bookings.paginator.page_range %}
+                                        {% if bookings.number == i %}
+                                            <li class="page-item active"><a class="page-link">{{ i }}</a></li>
+                                        {% else %}
+                                            <li class="page-item"><a class="page-link"
+                                                                     href="?{% if query %}q={{ query }}&{% endif %}page={{ i }}">{{ i }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if bookings.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.next_page_number }}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link"
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.paginator.num_pages }}">Last
+                                                &raquo;</a>
+                                        </li>
+                                    {% endif %}
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% for cheque in cheques %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card card-info">
+                                <div class="card-header">
+                                    <h5 class="card-title">Серия чека: {{ cheque.cheque_number }}</h5>
+
+                                    <div class="card-tools">
+                                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-tool" data-card-widget="#">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- /.card-header -->
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="card">
+                                                <div class="card-header">
+                                                    <h2 class="card-title"><b>Общая
+                                                        сумма: </b> {{ cheque.total_price|intcomma }} сум</h2>
+
+                                                    <div class="card-tools">
+                                                        <div class="input-group input-group-sm" style="width: 150px;">
+                                                            <a href="{% url 'warehouse_v2:invoice-gen' cheque.pk %}"
+                                                               class="btn btn-primary float-right"
+                                                               style="margin-right: 5px;">
+                                                                <i class="fas fa-download"></i> Скачать PDF
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>Полное наименование</th>
+                                                    <th>Количество</th>
+                                                    <th>Цена</th>
+                                                    <th>Сумма</th>
+                                                    <th>Добавлено</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+
+                                                {% for i in cheque.cheque_items.all %}
+                                                    <tr>
+                                                        <td>{{ i.item.item.name }}</td>
+                                                        <td>{{ i.quantity }}</td>
+                                                        <td>{{ i.price|intcomma }}</td>
+                                                        <td>{{ i.overall_price|intcomma }}</td>
+                                                        <td>{{ i.created_at }}</td>
+                                                    </tr>
+                                                {% endfor %}
+
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <!-- /.row -->
+                                </div>
+                            </div>
+                            <!-- /.card -->
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                {% endfor %}
+
+                <div class="invoice p-3 mb-3">
+                    <div class="row">
+                        <!-- accepted payments column -->
+                        <div class="col-6">
+                            <p class="lead">Способы оплаты:</p>
+                            <img src="{% static 'adminlte3_assets/dist/img/credit/visa.png' %}" alt="Visa">
+                            <img src="{% static 'adminlte3_assets/dist/img/credit/mastercard.png' %}" alt="Mastercard">
+                            <img src="{% static 'adminlte3_assets/dist/img/credit/american-express.png' %}"
+                                 alt="American Express">
+                            <img src="{% static 'adminlte3_assets/dist/img/credit/paypal2.png' %}" alt="Paypal">
+
+                            <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
+                                Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya
+                                handango imeem
+                                plugg
+                                dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
+                            </p>
+                        </div>
+                        <!-- /.col -->
+                        <div class="col-6">
+                            <p class="lead">Общая сумма к оплате - {{ today }}</p>
+
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <tr>
+                                        <th style="width:50%">Тариф:</th>
+                                        <td>{{ booking.current_tariff.price|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="width:50%">Медикаменты:</th>
+                                        <td>{{ cheques_sum|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="width:50%">Процедуры:</th>
+                                        <td>{{ procedures_sum|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th style="width:50%">Мед услуги:</th>
+                                        <td>{{ med_services_sum|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Скидки ({{ booking.discount }}%)</th>
+                                        <td>- {{ discount_sum|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Депозит:</th>
+                                        <td>- {{ booking.paid_amount|intcomma }} сум</td>
+                                    </tr>
+                                    <tr>
+                                        <th>К оплате:</th>
+                                        <td>{{ total_sum|intcomma }} сум</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.col -->
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-tools">
+                                <div class="input-group input-group-sm" style="width: 150px;">
+                                    <a href="#" data-toggle="modal" data-target="#modal-payment"
+                                       class="btn btn-success float-left" style="margin-right: 5px;">
+                                        <i class="fas fa-coins"></i> Закрыть счет
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-payment">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Закрыть счет</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+
+                                        <form id="payment_form" method="POST">
+                                            {% csrf_token %}
+                                            <div class="card-body">
+                                                <div class="form-group">
+                                                    <label for="example_fname">Тип оплаты</label>
+                                                    <select class="form-control select2"
+                                                            style="width: 100%;" name="transaction_type">
+
+                                                        {% for type in transaction_type %}
+                                                            <option value="{{ type.0 }}"
+                                                                    {% if payment_form.instance.transaction_type == type.0 %}selected{% endif %}>{{ type.0 }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_fname">Название платежа</label>
+                                                    <input name="payment_name" type="text" class="form-control"
+                                                           id="payment_name"
+                                                           placeholder="">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_last_name">Комментарии</label>
+                                                    <input name="comment" type="text" class="form-control"
+                                                           id="comment"
+                                                           placeholder="">
+                                                </div>
+                                                <div class="form-group disabled">
+                                                    <label for="example_last_name">К оплате</label>
+                                                    <input disabled name="amount" type="number" class="form-control"
+                                                           id="amount"
+                                                           placeholder="{{ total_sum|intcomma }}">
+                                                </div>
+
+                                            </div>
+                                            <!-- /.card-body -->
+
+                                            <div class="modal-footer justify-content-between">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Закрыть
+                                                </button>
+                                                <button name="payment_form" type="submit" class="btn btn-primary">Сохранить</button>
+                                            </div>
+                                        </form>
+
+                                    </div>
+                                    <!-- /.modal-content -->
+                                </div>
+                                <!-- /.modal-dialog -->
+                            </div>
+
+                            <div class="card-tools">
+                                <div class="input-group input-group-sm" style="width: 210px;">
+                                    <a href="#" data-toggle="modal" data-target="#modal-deposit"
+                                       class="btn btn-primary float-right" style="margin-right: 5px;">
+                                        <i class="fas fa-coins"></i> Пополнить депозить
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="modal fade" id="modal-deposit">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title">Пополнить депозить</h4>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+
+                                        <form id="registerPatientForm" method="POST"
+                                              action="">
+                                            {% csrf_token %}
+                                            <div class="card-body">
+                                                <div class="form-group">
+                                                    <label for="example_fname">Имя</label>
+                                                    <input name="f_name" type="text" class="form-control"
+                                                           id="example_fname"
+                                                           placeholder="Отабек">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_fname">Фамилия</label>
+                                                    <input name="mid_name" type="text" class="form-control"
+                                                           id="example_fname"
+                                                           placeholder="Равшанов">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_last_name">Отчества</label>
+                                                    <input name="l_name" type="text" class="form-control"
+                                                           id="example_last_name"
+                                                           placeholder="Ботирович">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_phone_nm">Телефон</label>
+                                                    <input name="mobile_phone_number" type="text" class="form-control"
+                                                           id="example_phone_nm" placeholder="+998901002030">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="example_phone_nm">Адрес</label>
+                                                    <input name="address" type="text" class="form-control "
+                                                           id="example_address"
+                                                           placeholder="Ташкентская область, Кибрайский район, городской посёлок Салар, улица Гулимамур, 5/1">
+                                                </div>
+
+
+                                                <div class="col-sm-6">
+                                                    <!-- radio -->
+                                                    <div class="form-group">
+                                                        <div class="custom-control custom-radio">
+                                                            <input value='False' class="custom-control-input"
+                                                                   type="radio"
+                                                                   id="customRadio1" name="gender">
+                                                            <label for="customRadio1" class="custom-control-label">Женщина</label>
+                                                        </div>
+                                                        <div class="custom-control custom-radio">
+                                                            <input value='True' class="custom-control-input"
+                                                                   type="radio"
+                                                                   id="customRadio2" name="gender" checked>
+                                                            <label for="customRadio2" class="custom-control-label">Мужчина</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Дата рождения:</label>
+                                                    <div class="input-group date" id="reservationdate"
+                                                         data-target-input="nearest">
+                                                        <input name="date_of_birth" type="text"
+                                                               class="form-control datetimepicker-input"
+                                                               data-target="#reservationdate"/>
+                                                        <div class="input-group-append" data-target="#reservationdate"
+                                                             data-toggle="datetimepicker">
+                                                            <div class="input-group-text"><i class="fa fa-calendar"></i>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <!-- /.card-body -->
+
+                                            <div class="modal-footer justify-content-between">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                    Закрыть
+                                                </button>
+                                                <button type="submit" class="btn btn-primary">Сохранить</button>
+                                            </div>
+                                        </form>
+
+                                    </div>
+                                    <!-- /.modal-content -->
+                                </div>
+                                <!-- /.modal-dialog -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- /.content-wrapper -->
+
+
+{% include 'snippets/footer.html' %}
+<!-- Control Sidebar -->
+<aside class="control-sidebar control-sidebar-dark">
+    <!-- Control sidebar content goes here -->
+</aside>
+<!-- /.control-sidebar -->
+
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script>
+    $.widget.bridge('uibutton', $.ui.button)
+</script>
+<!-- jQuery -->
+
+<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/select2/js/select2.full.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/inputmask/jquery.inputmask.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap-switch/js/bootstrap-switch.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bs-stepper/js/bs-stepper.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/dist/js/pages/dashboard.js' %}"></script>
+<!-- Page specific script -->
+
+</body>
+</html>

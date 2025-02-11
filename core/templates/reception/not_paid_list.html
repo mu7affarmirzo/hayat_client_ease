@@ -103,7 +103,7 @@
                                         <tr>
                                             <td>{{ i.id }}</td>
                                             <td>
-                                                <a href="{% url 'reception_registration:session-detailed' i.id %}">{{ i.patient.full_name }}</a>
+                                                {{ i.patient.full_name }}
                                             </td>
                                             <td>{{ i.created_at }}</td>
                                             <td>{{ i.massage.type }}</td>

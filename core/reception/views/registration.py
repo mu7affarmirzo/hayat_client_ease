@@ -1,4 +1,3 @@
-from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -8,8 +7,8 @@ from core.reception.forms.registration import PatientRegistrationForm, SessionFo
 
 def load_services(request):
     service_type_id = request.GET.get('service_type_id')
-    services = ServiceModel.objects.filter(service_type_id=service_type_id).values('id', 'name')
-    return JsonResponse(list(services), safe=False)
+    services = ServiceModel.objects.filter(type__id=service_type_id)
+    return render(request, 'reception/services_dropdown_list_options.html', {'services': services})
 
 
 # @role_required(role='logus', login_url='logus_auth:logout')
@@ -18,14 +17,14 @@ def register_booking_view(request):
     if request.method == 'POST':
         form = SessionForm(request.POST)
         if form.is_valid():
-            booking = form.save()
-            return redirect('reception_auth:main_screen', pk=booking.pk)
-            # return redirect('logus_auth:main_screen')
+            session = form.save(commit=False)
+            session.created_by = request.user
+            session.save()
+            return redirect('reception_auth:main_screen')
     else:
         form = SessionForm()
     patients = PatientModel.objects.all()
     service_types = ServiceTypeModel.objects.all()
-    massages = ServiceModel.objects.all()
     therapists = Account.objects.filter(is_therapist=True)
     return render(
         request, 'reception/create_booking.html',
@@ -33,10 +32,13 @@ def register_booking_view(request):
             'form': form,
             'patients': patients,
             'service_types': service_types,
-            'massages': massages,
             'therapists': therapists,
         }
     )
+
+
+def session_detailed_view(request, pk):
+    return render(request, 'reception/session_detailed.html', {})
 
 
 @csrf_exempt
