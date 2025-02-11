@@ -114,7 +114,15 @@
                                             <td>{{ i.discount  }} %</td>
                                             <td>{{ i.total_price|intcomma }} сум</td>
                                             <td>{{ i.overall_payed_amount|default_if_none:0|intcomma}} сум</td>
-                                            <td>{{ i.is_paid }}</td>
+                                            <td>
+                                                {% if i.overall_payed_amount != 0 and i.is_paid == False %}
+                                                    <span class="bg-warning badge">Частично Оплачено</span>
+                                                {% elif i.is_paid == True %}
+                                                    <span class="bg-success badge">Оплачено</span>
+                                                {% else %}
+                                                    <span class="bg-danger badge"> Не Оплачено</span>
+                                                {% endif %}
+                                            </td>
                                         </tr>
                                     {% endfor %}
 

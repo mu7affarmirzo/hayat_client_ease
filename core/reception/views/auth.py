@@ -70,7 +70,7 @@ def not_paid_list_view(request):
     sessions = paginate_page(request, sessions)
 
     context = {'sessions': sessions}
-    return render(request, 'reception/not_paid_list.html', context)
+    return render(request, 'reception/main_screen.html', context)
 
 
 def get_booking_queryset(query=None, stage=None):

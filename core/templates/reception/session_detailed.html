@@ -58,9 +58,9 @@
                         <!-- small box -->
                         <div class="small-box bg-info">
                             <div class="inner">
-                                <h3>{{ booking.current_tariff }}</h3>
+                                <h3>{{ session.massage }}</h3>
 
-                                <p>Пакет</p>
+                                <p>Услуга</p>
                             </div>
                             <div class="icon">
                                 <i class="ion ion-bag"></i>
@@ -72,7 +72,7 @@
                         <!-- small box -->
                         <div class="small-box bg-success">
                             <div class="inner">
-                                <h3>{{ booking.discount }}<sup style="font-size: 20px">%</sup></h3>
+                                <h3>{{ session.discount }}<sup style="font-size: 20px">%</sup></h3>
 
                                 <p>Скидка</p>
                             </div>
@@ -86,9 +86,9 @@
                         <!-- small box -->
                         <div class="small-box bg-warning">
                             <div class="inner">
-                                <h3>{{ booking.paid_amount|intcomma }} сум</h3>
+                                <h3>{{ session.overall_payed_amount|default_if_none:0|intcomma }} сум</h3>
 
-                                <p>Депозит</p>
+                                <p>Депозит/Оплачено</p>
                             </div>
                             <div class="icon">
                                 <i class="ion ion-stats-bars"></i>
@@ -100,7 +100,7 @@
                         <!-- small box -->
                         <div class="small-box bg-danger">
                             <div class="inner">
-                                <h3>{{ total_sum|intcomma }} сум</h3>
+                                <h3>{{ session.remaining_payed_amount|default_if_none:0|intcomma }} сум</h3>
 
                                 <p>Долг</p>
                             </div>
@@ -114,7 +114,7 @@
                 <!-- SELECT2 EXAMPLE -->
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Бронирование :{{ booking.series }}</h3>
+                        <h3 class="card-title">Бронирование :{{ session.series }}</h3>
                     </div>
 
                     <div class="row">
@@ -124,7 +124,7 @@
                                     <label for="arrival-date-picker">Время выездa</label>
                                     <div class="card-tools">
                                         <div class="input-group input-group-sm" style="width: 150px;">
-                                            {{ booking.end_date }}
+                                            {{ session.end_date }}
                                         </div>
                                     </div>
                                 </div>
@@ -136,68 +136,62 @@
 
                                 <table class="table table-bordered">
                                     <thead>
-                                    <tr>
-                                        <th style="width: 10px">#</th>
-                                        <th>Серия</th>
-                                        <th>Имя гостя</th>
-                                        <th>Дата выезда</th>
-                                        <th>Тип комнаты</th>
-                                        <th>Комната</th>
-                                        <th>Время заезда</th>
-                                        <th>Дней</th>
-                                        <th>Статус</th>
-                                    </tr>
-
+                                        <tr>
+                                            <th style="width: 10px">#</th>
+                                            <th>Имя гостя</th>
+                                            <th>Забронированное время</th>
+                                            <th>Тип услуги</th>
+                                            <th>Услуга</th>
+                                            <th>Терапевт</th>
+                                            <th>Кол-во</th>
+                                            <th>Обш.Сумма</th>
+                                            <th>Скидка</th>
+                                            <th>Итог. Сумма</th>
+                                            <th>Оплаченная сумма</th>
+                                            <th>Статус оплаты</th>
+                                        </tr>
                                     </thead>
 
-                                    <tbody id="booking-table-body">
+                                    <tbody id="session-table-body">
                                     <tr>
-                                        <td>{{ booking.id }}</td>
-                                        <td>{{ booking.series }}</td>
+                                        <td>{{ session.id }}</td>
                                         <td>
-                                            {{ booking.patient.full_name }}
+                                            {{ session.patient.full_name }}
                                         </td>
-                                        <td>{{ booking.end_date }}</td>
+                                        <td>{{ session.created_at }}</td>
+                                        <td>{{ session.massage.type }}</td>
+                                        <td>{{ session.massage.name }}</td>
+                                        <td>{{ session.therapist.full_name }}</td>
+                                        <td>{{ session.quantity }}</td>
+                                        <td>{{ session.pre_discount_price|intcomma }} сум</td>
+                                        <td>{{ session.discount  }} %</td>
+                                        <td>{{ session.total_price|intcomma }} сум</td>
+                                        <td>{{ session.overall_payed_amount|default_if_none:0|intcomma}} сум</td>
                                         <td>
-                                                <span class="badge"
-                                                      style="background-color: {{ booking.current_room_type.color }};">{{ booking.current_room_type }}</span>
-                                        </td>
-                                        <td>{{ booking.current_room.room_number }}</td>
-                                        <td>{{ booking.start_date }}</td>
-                                        <td>{{ booking.duration }}</td>
-                                        <td>
-                                            {% if booking.stage == 'served' %}
+                                            {% if session.overall_payed_amount != 0 and session.is_paid == False %}
+                                                <span class="bg-warning badge">Частично Оплачено</span>
+                                            {% elif session.is_paid == True %}
                                                 <span class="bg-success badge">Оплачено</span>
-                                            {% elif booking.stage == 'booked' %}
-                                                <span class="bg-primary badge">Забронировано</span>
-                                            {% elif booking.stage == 'arrived' %}
-                                                <span class="bg-blue badge">Прибыл</span>
-                                            {% elif booking.stage == 'cancelled' %}
-                                                <span class="bg-danger badge">Отменено</span>
-                                            {% elif booking.stage == 'settled' %}
-                                                <span class="bg-warning badge">Поселился</span>
                                             {% else %}
-                                                <span class="bg-danger badge">Не ясно {{ booking.stage }}</span>
+                                                <span class="bg-danger badge"> Не Оплачено</span>
                                             {% endif %}
                                         </td>
                                     </tr>
-
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- /.card-body -->
                             <div class="card-footer clearfix">
                                 <ul class="pagination pagination-sm m-0 float-right">
 
-                                    {% if bookings.has_previous %}
+                                    {% if sessions.has_previous %}
                                         <li class="page-item">
                                             <a class="page-link"
-                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.previous_page_number }}">&laquo;</a>
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ sessions.previous_page_number }}">&laquo;</a>
                                         </li>
                                     {% endif %}
 
-                                    {% for i in bookings.paginator.page_range %}
-                                        {% if bookings.number == i %}
+                                    {% for i in sessions.paginator.page_range %}
+                                        {% if sessions.number == i %}
                                             <li class="page-item active"><a class="page-link">{{ i }}</a></li>
                                         {% else %}
                                             <li class="page-item"><a class="page-link"
@@ -206,14 +200,14 @@
                                         {% endif %}
                                     {% endfor %}
 
-                                    {% if bookings.has_next %}
+                                    {% if sessions.has_next %}
                                         <li class="page-item">
                                             <a class="page-link"
-                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.next_page_number }}">Next</a>
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ sessions.next_page_number }}">Next</a>
                                         </li>
                                         <li class="page-item">
                                             <a class="page-link"
-                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ bookings.paginator.num_pages }}">Last
+                                               href="?{% if query %}q={{ query }}&{% endif %}page={{ sessions.paginator.num_pages }}">Last
                                                 &raquo;</a>
                                         </li>
                                     {% endif %}
@@ -224,12 +218,11 @@
                     </div>
                 </div>
 
-                {% for cheque in cheques %}
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card card-info">
                                 <div class="card-header">
-                                    <h5 class="card-title">Серия чека: {{ cheque.cheque_number }}</h5>
+                                    <h5 class="card-title">История оплаты</h5>
 
                                     <div class="card-tools">
                                         <button type="button" class="btn btn-tool" data-card-widget="collapse">
@@ -240,24 +233,13 @@
                                         </button>
                                     </div>
                                 </div>
-                                <!-- /.card-header -->
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-12">
                                             <div class="card">
                                                 <div class="card-header">
                                                     <h2 class="card-title"><b>Общая
-                                                        сумма: </b> {{ cheque.total_price|intcomma }} сум</h2>
-
-                                                    <div class="card-tools">
-                                                        <div class="input-group input-group-sm" style="width: 150px;">
-                                                            <a href="{% url 'warehouse_v2:invoice-gen' cheque.pk %}"
-                                                               class="btn btn-primary float-right"
-                                                               style="margin-right: 5px;">
-                                                                <i class="fas fa-download"></i> Скачать PDF
-                                                            </a>
-                                                        </div>
-                                                    </div>
+                                                        сумма: </b> {{ session.overall_payed_amount|intcomma }} сум</h2>
                                                 </div>
 
                                             </div>
@@ -265,22 +247,20 @@
                                             <table class="table table-bordered">
                                                 <thead>
                                                 <tr>
-                                                    <th>Полное наименование</th>
-                                                    <th>Количество</th>
-                                                    <th>Цена</th>
                                                     <th>Сумма</th>
-                                                    <th>Добавлено</th>
+                                                    <th>Тип</th>
+                                                    <th>Дата</th>
+                                                    <th>Автор</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
 
-                                                {% for i in cheque.cheque_items.all %}
+                                                {% for i in payments %}
                                                     <tr>
-                                                        <td>{{ i.item.item.name }}</td>
-                                                        <td>{{ i.quantity }}</td>
-                                                        <td>{{ i.price|intcomma }}</td>
-                                                        <td>{{ i.overall_price|intcomma }}</td>
+                                                        <td>{{ i.amount|intcomma }} сум</td>
                                                         <td>{{ i.created_at }}</td>
+                                                        <td>{{ i.method }}</td>
+                                                        <td>{{ i.created_by.full_name }}</td>
                                                     </tr>
                                                 {% endfor %}
 
@@ -295,63 +275,11 @@
                         </div>
                         <!-- /.col -->
                     </div>
-                {% endfor %}
 
                 <div class="invoice p-3 mb-3">
                     <div class="row">
                         <!-- accepted payments column -->
-                        <div class="col-6">
-                            <p class="lead">Способы оплаты:</p>
-                            <img src="{% static 'adminlte3_assets/dist/img/credit/visa.png' %}" alt="Visa">
-                            <img src="{% static 'adminlte3_assets/dist/img/credit/mastercard.png' %}" alt="Mastercard">
-                            <img src="{% static 'adminlte3_assets/dist/img/credit/american-express.png' %}"
-                                 alt="American Express">
-                            <img src="{% static 'adminlte3_assets/dist/img/credit/paypal2.png' %}" alt="Paypal">
 
-                            <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-                                Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya
-                                handango imeem
-                                plugg
-                                dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
-                            </p>
-                        </div>
-                        <!-- /.col -->
-                        <div class="col-6">
-                            <p class="lead">Общая сумма к оплате - {{ today }}</p>
-
-                            <div class="table-responsive">
-                                <table class="table">
-                                    <tr>
-                                        <th style="width:50%">Тариф:</th>
-                                        <td>{{ booking.current_tariff.price|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:50%">Медикаменты:</th>
-                                        <td>{{ cheques_sum|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:50%">Процедуры:</th>
-                                        <td>{{ procedures_sum|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th style="width:50%">Мед услуги:</th>
-                                        <td>{{ med_services_sum|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Скидки ({{ booking.discount }}%)</th>
-                                        <td>- {{ discount_sum|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th>Депозит:</th>
-                                        <td>- {{ booking.paid_amount|intcomma }} сум</td>
-                                    </tr>
-                                    <tr>
-                                        <th>К оплате:</th>
-                                        <td>{{ total_sum|intcomma }} сум</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
                         <!-- /.col -->
                     </div>
                     <div class="card">
@@ -374,37 +302,25 @@
                                             </button>
                                         </div>
 
-                                        <form id="payment_form" method="POST">
+                                        <form id="payment_form" method="POST" action="{% url 'reception_registration:whole_payment' session.id %}">
                                             {% csrf_token %}
                                             <div class="card-body">
                                                 <div class="form-group">
                                                     <label for="example_fname">Тип оплаты</label>
                                                     <select class="form-control select2"
-                                                            style="width: 100%;" name="transaction_type">
+                                                            style="width: 100%;" name="method">
 
-                                                        {% for type in transaction_type %}
-                                                            <option value="{{ type.0 }}"
-                                                                    {% if payment_form.instance.transaction_type == type.0 %}selected{% endif %}>{{ type.0 }}</option>
+                                                        {% for type in methods %}
+                                                            <option value="{{ type.0 }}">{{ type.0 }}</option>
                                                         {% endfor %}
                                                     </select>
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="example_fname">Название платежа</label>
-                                                    <input name="payment_name" type="text" class="form-control"
-                                                           id="payment_name"
-                                                           placeholder="">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="example_last_name">Комментарии</label>
-                                                    <input name="comment" type="text" class="form-control"
-                                                           id="comment"
-                                                           placeholder="">
-                                                </div>
+
                                                 <div class="form-group disabled">
                                                     <label for="example_last_name">К оплате</label>
                                                     <input disabled name="amount" type="number" class="form-control"
                                                            id="amount"
-                                                           placeholder="{{ total_sum|intcomma }}">
+                                                           placeholder="{{ session.remaining_payed_amount|intcomma }} сум">
                                                 </div>
 
                                             </div>
@@ -442,73 +358,27 @@
                                             </button>
                                         </div>
 
-                                        <form id="registerPatientForm" method="POST"
-                                              action="">
+                                        <form id="deposit_form" method="POST" action="{% url 'reception_registration:singular_payment' session.id %}">
                                             {% csrf_token %}
                                             <div class="card-body">
                                                 <div class="form-group">
-                                                    <label for="example_fname">Имя</label>
-                                                    <input name="f_name" type="text" class="form-control"
-                                                           id="example_fname"
-                                                           placeholder="Отабек">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="example_fname">Фамилия</label>
-                                                    <input name="mid_name" type="text" class="form-control"
-                                                           id="example_fname"
-                                                           placeholder="Равшанов">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="example_last_name">Отчества</label>
-                                                    <input name="l_name" type="text" class="form-control"
-                                                           id="example_last_name"
-                                                           placeholder="Ботирович">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="example_phone_nm">Телефон</label>
-                                                    <input name="mobile_phone_number" type="text" class="form-control"
-                                                           id="example_phone_nm" placeholder="+998901002030">
-                                                </div>
-                                                <div class="form-group">
-                                                    <label for="example_phone_nm">Адрес</label>
-                                                    <input name="address" type="text" class="form-control "
-                                                           id="example_address"
-                                                           placeholder="Ташкентская область, Кибрайский район, городской посёлок Салар, улица Гулимамур, 5/1">
+                                                    <label for="example_fname">Тип оплаты</label>
+                                                    <select class="form-control select2"
+                                                            style="width: 100%;" name="method">
+
+                                                        {% for type in methods %}
+                                                            <option value="{{ type.0 }}" >{{ type.0 }}</option>
+                                                        {% endfor %}
+                                                    </select>
                                                 </div>
 
-
-                                                <div class="col-sm-6">
-                                                    <!-- radio -->
-                                                    <div class="form-group">
-                                                        <div class="custom-control custom-radio">
-                                                            <input value='False' class="custom-control-input"
-                                                                   type="radio"
-                                                                   id="customRadio1" name="gender">
-                                                            <label for="customRadio1" class="custom-control-label">Женщина</label>
-                                                        </div>
-                                                        <div class="custom-control custom-radio">
-                                                            <input value='True' class="custom-control-input"
-                                                                   type="radio"
-                                                                   id="customRadio2" name="gender" checked>
-                                                            <label for="customRadio2" class="custom-control-label">Мужчина</label>
-                                                        </div>
-                                                    </div>
+                                                <div class="form-group disabled">
+                                                    <label for="example_last_name">К оплате</label>
+                                                    <input name="amount" type="number" class="form-control"
+                                                           id="amount"
+                                                           placeholder="{{ total_sum|intcomma }}">
                                                 </div>
 
-                                                <div class="form-group">
-                                                    <label>Дата рождения:</label>
-                                                    <div class="input-group date" id="reservationdate"
-                                                         data-target-input="nearest">
-                                                        <input name="date_of_birth" type="text"
-                                                               class="form-control datetimepicker-input"
-                                                               data-target="#reservationdate"/>
-                                                        <div class="input-group-append" data-target="#reservationdate"
-                                                             data-toggle="datetimepicker">
-                                                            <div class="input-group-text"><i class="fa fa-calendar"></i>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
                                             </div>
                                             <!-- /.card-body -->
 
@@ -516,7 +386,7 @@
                                                 <button type="button" class="btn btn-default" data-dismiss="modal">
                                                     Закрыть
                                                 </button>
-                                                <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                <button name="deposit_form" type="submit" class="btn btn-primary">Сохранить</button>
                                             </div>
                                         </form>
 

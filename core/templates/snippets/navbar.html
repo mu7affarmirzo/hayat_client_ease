@@ -20,10 +20,10 @@
                     <a href="{% url 'reception_registration:register-booking' %}" class="nav-link">Забронировать</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">Ожидаемый выезд</a>
+                    <a href="{% url 'reception_auth:not_paid_list' %}" class="nav-link">Неоплаченные</a>
                 </li>
                 <li class="nav-item">
-                    <a href="{% url 'reception_auth:not_paid_list' %}" class="nav-link">Неоплаченные</a>
+                    <a href="#" class="nav-link">Статистика</a>
                 </li>
             </ul>
 
