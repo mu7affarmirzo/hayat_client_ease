@@ -1,7 +1,7 @@
 {% load static %}
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
     <div class="container">
-        <a href="#" class="navbar-brand">
+        <a href="{% url 'reception_auth:main_screen' %}" class="navbar-brand">
             <img src="{% static 'adminlte3_assets/dist/img/hayat_logo.png' %}" alt="AdminLTE Logo"
                  class="brand-image img" style="opacity: .8">
             <span class="brand-text font-weight-light"></span>
@@ -17,7 +17,7 @@
             <!-- Left navbar links -->
             <ul class="navbar-nav">
                 <li class="nav-item bg">
-                    <a href="#" class="nav-link">Забронировать</a>
+                    <a href="{% url 'reception_registration:register-booking' %}" class="nav-link">Забронировать</a>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">Ожидаемый выезд</a>

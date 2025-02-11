@@ -1,3 +1,4 @@
+{% load humanize %}
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
@@ -40,55 +41,6 @@
         <section class="content">
             <div class="container-fluid">
                 <!-- SELECT2 EXAMPLE -->
-                <div class="card card-success">
-                    <div class="card-header">
-                        <h3 class="card-title">Мастер бронирования</h3>
-                    </div>
-                    <form action="#" enctype="multipart/form-data"
-                          method="post" id="product_form">
-                        {% csrf_token %}
-                        <!-- /.card-header -->
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Диапазон дат:</label>
-
-                                        <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                  <span class="input-group-text">
-                                                    <i class="far fa-calendar-alt"></i>
-                                                  </span>
-                                            </div>
-                                            <input name="reservation_time" type="text" class="form-control float-right"
-                                                   id="reservation">
-                                        </div>
-                                        <!-- /.input group -->
-                                    </div>
-                                    <!-- /.form-group -->
-                                </div>
-
-                                <!-- /.col -->
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Тип комнаты</label>
-                                        <select name="room_type" class="form-control select_room_type" style="width: 100%;">
-                                            {% for room_type in room_types %}
-                                                <option name="room_type"
-                                                        value="{{ room_type.id }}">{{ room_type.name }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <!-- /.col -->
-                            </div>
-                            <!-- /.row -->
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </div>
-                    </form>
-                </div>
-
                 <div class="card card-primary">
                     <div class="card-header">
                         <h3 class="card-title">Забронированные сеансы</h3>
@@ -135,6 +87,7 @@
                                         <th>Забронированное время</th>
                                         <th>Тип услуги</th>
                                         <th>Услуга</th>
+                                        <th>Терапевт</th>
                                         <th>Кол-во</th>
                                         <th>Обш.Сумма</th>
                                         <th>Скидка</th>
@@ -155,11 +108,12 @@
                                             <td>{{ i.created_at }}</td>
                                             <td>{{ i.massage.type }}</td>
                                             <td>{{ i.massage.name }}</td>
+                                            <td>{{ i.therapist.full_name }}</td>
                                             <td>{{ i.quantity }}</td>
-                                            <td>{{ i.pre_discount_price }}</td>
-                                            <td>{{ i.discount }} %</td>
-                                            <td>{{ i.total_price }}</td>
-                                            <td>{{ i.overall_payed_amount }}</td>
+                                            <td>{{ i.pre_discount_price|intcomma }} сум</td>
+                                            <td>{{ i.discount  }} %</td>
+                                            <td>{{ i.total_price|intcomma }} сум</td>
+                                            <td>{{ i.overall_payed_amount|default_if_none:0|intcomma}} сум</td>
                                             <td>{{ i.is_paid }}</td>
                                         </tr>
                                     {% endfor %}

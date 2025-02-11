@@ -6,10 +6,12 @@ from core.models import PatientModel, ServiceModel, Account
 
 
 class SessionModel(models.Model):
-    patient = models.ForeignKey(PatientModel, on_delete=models.CASCADE, related_name="sessions")
-    massage = models.ForeignKey(ServiceModel, on_delete=models.CASCADE)
+    patient = models.ForeignKey(PatientModel, on_delete=models.CASCADE, related_name="sessions", null=True, blank=True)
+    massage = models.ForeignKey(ServiceModel, on_delete=models.CASCADE, related_name="sessions", null=True, blank=True)
+    therapist = models.ForeignKey(Account, on_delete=models.CASCADE, related_name="sessions", null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     discount = models.PositiveIntegerField(default=0, blank=True, null=True)
+    start_date = models.DateTimeField(auto_now_add=True, null=True)
     total_price = models.PositiveIntegerField(default=0, blank=True, null=True)
     pre_discount_price = models.PositiveIntegerField(default=0, blank=True, null=True)
     is_paid = models.BooleanField(default=False)

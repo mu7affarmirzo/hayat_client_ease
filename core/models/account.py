@@ -46,6 +46,7 @@ class Account(AbstractBaseUser):
     color = models.CharField(max_length=255, null=True)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    is_therapist = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -74,3 +75,17 @@ class Account(AbstractBaseUser):
         return f"{self.f_name} {self.l_name} {m_name}"
 
 
+class RolesModel(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class AccountRoleModel(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='roles', null=True, blank=True)
+    role = models.ForeignKey(RolesModel, on_delete=models.CASCADE, related_name='accounts', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.account} {self.role}"

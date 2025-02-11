@@ -14,12 +14,7 @@ class PatientModel(models.Model):
     home_phone_number = models.CharField(max_length=255, blank=True, null=True)
     mobile_phone_number = models.CharField(max_length=255, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    additional_info = models.JSONField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    doc_type = models.CharField(max_length=255, blank=True, null=True)
-    doc_number = models.CharField(max_length=255, blank=True, null=True)
-    issued_data = models.DateField(auto_now=True)
-    INN = models.CharField(max_length=255, blank=True, null=True)
     country = models.CharField(max_length=255, blank=True, null=True)
     last_visit_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
@@ -27,7 +22,6 @@ class PatientModel(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     modified_by = models.ForeignKey(Account, related_name="modf_patient_by_user", on_delete=models.SET_NULL, null=True, blank=True)
     gender = models.BooleanField()
-    gestational_age = models.IntegerField(null=True, blank=True)
 
     @property
     def age(self):
