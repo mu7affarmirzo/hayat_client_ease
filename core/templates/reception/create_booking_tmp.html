@@ -57,7 +57,7 @@
                         <div class="card card-default">
                             <!-- /.card-header -->
                             <div class="card-body">
-                                <form method="post" action="">
+                                <form method="post" action="{% url 'reception_registration:register-booking' %}">
                                     {% csrf_token %}
                                     <h5>Пациент</h5>
                                     <div class="row">
@@ -91,69 +91,66 @@
                                         <!-- /.col -->
                                     </div>
 
+                                    <h5>Комната</h5>
                                     <div class="row">
                                         <div class="col-12 col-sm-6">
                                             <div class="form-group">
-                                                <label>Тип Услуги</label>
-                                                <select id="id_service_type" name=""
-                                                        class="form-control select2 select2-primary"
+                                                <select name="current_room" class="form-control select2 select2-primary"
                                                         data-dropdown-css-class="select2-primary" style="width: 100%;">
-                                                    <option value="">---------</option>
-                                                    {% for type in service_types %}
-                                                        <option value="{{ type.id }}">{{ type.type }}</option>
+                                                    {% for room in rooms %}
+                                                        <option value="{{ room.id }}">{{ room.room_number }}</option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
+                                            <!-- /.form-group -->
                                         </div>
-
+                                        <!-- /.col -->
                                         <div class="col-12 col-sm-6">
                                             <div class="form-group">
-                                                <label>Услуга</label>
-                                                <select id="id_service" name="massage" required
-                                                        class="form-control select2 select2-primary"
-                                                        data-dropdown-css-class="select2-primary" style="width: 100%;">
-                                                    <option>---------</option>
-                                                    <!-- We'll replace these options dynamically -->
-                                                </select>
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                      <span class="input-group-text">
+                                                        <i class="far fa-calendar-alt"></i>
+                                                      </span>
+                                                    </div>
+                                                    <input name="booking_period" type="text"
+                                                           class="form-control float-right" id="reservation">
+                                                </div>
                                             </div>
                                         </div>
+
+                                        <input type="hidden" name="start_date" id="start_date">
+                                        <input type="hidden" name="end_date" id="end_date">
+                                        <!-- /.col -->
                                     </div>
+                                    <!-- /.row -->
 
                                     <div class="row">
                                         <div class="col-12 col-sm-6">
                                             <div class="form-group">
-                                                <label>Терапевт</label>
+                                                <label>Тип комнаты</label>
                                                 <select class="form-control select2 select2-primary"
-                                                        name="therapist"
+                                                        name="current_room_type"
                                                         data-dropdown-css-class="select2-primary" style="width: 100%;">
-                                                    {% for staff in therapists %}
-                                                        <option value="{{ staff.id }}">{{ staff.full_name }}</option>
+                                                    {% for room in room_types %}
+                                                        <option value="{{ room.id }}">{{ room.name }}</option>
                                                     {% endfor %}
                                                 </select>
                                             </div>
                                             <!-- /.form-group -->
                                         </div>
                                         <!-- /.col -->
-                                        <div class="col-12 col-sm-3">
+                                        <div class="col-12 col-sm-6">
                                             <div class="form-group">
-                                                <label>Кол-во</label>
+                                                <label>Тариф</label>
                                                 <div class="select2-primary">
-                                                    <input id="id_quantity" type="number" class="form-control"  placeholder="0"
-                                                           value="{{ form.instance.quantity|default_if_none:0 }}"
-                                                           name="quantity"
-                                                    >
-                                                </div>
-                                            </div>
-                                            <!-- /.form-group -->
-                                        </div>
-                                        <div class="col-12 col-sm-3">
-                                            <div class="form-group">
-                                                <label>Скидка %</label>
-                                                <div class="select2-primary">
-                                                    <input id="id_discount" type="number" class="form-control"  placeholder="0 %"
-                                                           value="{{ form.instance.discount }}"
-                                                           name="discount"
-                                                    >
+                                                    <select class="select2" name="current_tariff"
+                                                            data-dropdown-css-class="select2-primary"
+                                                            style="width: 100%;">
+                                                        {% for tariff in tariffs %}
+                                                            <option value="{{ tariff.id }}">{{ tariff.name }}</option>
+                                                        {% endfor %}
+                                                    </select>
                                                 </div>
                                             </div>
                                             <!-- /.form-group -->
@@ -161,14 +158,6 @@
                                         <!-- /.col -->
                                     </div>
 
-                                    <div class="col-12 col-sm-6">
-                                        <div class="form-group">
-                                            <label>Итоговая Цена</label>
-                                            <p id="id_total_price" class="form-control-static" style="font-weight: bold;">
-                                                0.00
-                                            </p>
-                                        </div>
-                                    </div>
                                     <button class="btn btn-primary" type="submit">Забронировать</button>
                                 </form>
                                 <!-- /.row -->
@@ -314,7 +303,7 @@
         const form = document.getElementById('newPatientForm');
         const formData = new FormData(form);
 
-        fetch("", {
+        fetch("{% url 'reception_registration:add-new-patient' %}", {
             method: 'POST',
             body: formData,
             headers: {
@@ -539,45 +528,6 @@
     });
   });
 </script>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // 1. Grab references to DOM elements
-    const serviceSelect = document.getElementById('id_service');
-    const quantityInput = document.getElementById('id_quantity');
-    const discountInput = document.getElementById('id_discount');
-    const totalPriceElem = document.getElementById('id_total_price');
-
-    function formatWithCommas(value) {
-      // 2 decimal places; adjust to your needs:
-      const strValue = value.toFixed(2);
-      return strValue.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-
-    function recalcPrice() {
-      const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-      const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
-      const quantity = parseFloat(quantityInput.value) || 1;
-      const discount = parseFloat(discountInput.value) || 0;
-
-      const discountedPrice = price - (price * (discount / 100));
-      const total = discountedPrice * quantity;
-
-      totalPriceElem.textContent = total.toFixed(2);
-        // Format the output with commas
-      totalPriceElem.textContent = formatWithCommas(total);
-    }
-
-    // 2. Attach event listeners
-    serviceSelect.addEventListener('change', recalcPrice);
-    quantityInput.addEventListener('input', recalcPrice);
-    discountInput.addEventListener('input', recalcPrice);
-
-    // Optionally, run once on page load
-    recalcPrice();
-  });
-</script>
-
 
 </body>
 </html>

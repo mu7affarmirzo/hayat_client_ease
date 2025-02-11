@@ -48,9 +48,9 @@ def add_new_patient(request):
         if form.is_valid():
             patient = form.save(commit=False)
             patient.created_by = request.user
-            patient.modified_by = request.user
             patient.save()
             return redirect('reception_registration:register-booking')  # Replace with your success URL
     else:
-        return redirect('logus_registration:register-booking')
+        return redirect('reception_registration:register-booking')
     return render(request, 'reception/create_booking.html', {'form': form})
+
