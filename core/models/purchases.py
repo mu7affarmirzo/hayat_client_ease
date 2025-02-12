@@ -28,7 +28,14 @@ class SessionModel(models.Model):
 
     @property
     def overall_payed_amount(self):
-        return self.payments.aggregate(total=Sum('amount'))['total']
+        try:
+            return int(self.payments.aggregate(total=Sum('amount'))['total'])
+        except:
+            return 0
+
+    @property
+    def remaining_payed_amount(self):
+        return int(self.total_price-self.overall_payed_amount)
 
     def __str__(self):
         return f"{self.patient.full_name} - {self.massage.name} ({self.quantity})"
@@ -39,7 +46,7 @@ class SessionModel(models.Model):
 
 class PaymentModel(models.Model):
     session = models.ForeignKey(SessionModel, on_delete=models.CASCADE, related_name="payments")
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.PositiveBigIntegerField(null=True, blank=True, default=0)
     method = models.CharField(max_length=50, choices=[("наличка", "Наличка"), ("карта", "Карта"), ("online", "Online")])
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -62,3 +69,5 @@ class PaymentModel(models.Model):
     def __str__(self):
         return f"Payment of {self.amount} for {self.session.patient.full_name}"
 
+    class Meta:
+        ordering = ('-created_at',)
