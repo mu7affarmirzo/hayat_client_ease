@@ -2,8 +2,6 @@ from django.contrib import admin
 from core.models import *
 from core.models.services import ServiceTypeModel, ServiceModel
 
-# Register your models here.
-
 
 admin.site.register(Account)
 admin.site.register(PatientModel)
@@ -13,3 +11,4 @@ admin.site.register(PaymentModel)
 admin.site.register(SessionModel)
 admin.site.register(RolesModel)
 admin.site.register(AccountRoleModel)
+admin.site.register(ReferralDoctorModel)
