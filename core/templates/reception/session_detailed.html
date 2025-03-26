@@ -1,6 +1,7 @@
 {% load humanize %}
 {% load static %}
 {% load i18n %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -49,6 +50,18 @@
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <br>
+
+        {% if messages %}
+        <div class="container-fluid">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible">
+                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <!-- Main content -->
         <section class="content">
             <div class="container-fluid">
@@ -111,6 +124,115 @@
                     </div>
                     <!-- ./col -->
                 </div>
+
+                <!-- Sessions Progress Row -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-primary">
+                            <div class="card-header">
+                                <h3 class="card-title">Отслеживание сеансов</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="progress">
+                                    {% if session.quantity > 0 %}
+                                    {% with progress=session.proceeded_sessions|divisibleby:session.quantity %}
+                                    <div class="progress-bar bg-primary progress-bar-striped" role="progressbar"
+                                         style="width: {{ progress|floatformat:0 }}%"
+                                         aria-valuenow="{{ session.proceeded_sessions }}" aria-valuemin="0" aria-valuemax="{{ session.quantity }}">
+                                        {{ session.proceeded_sessions }} / {{ session.quantity }}
+                                    </div>
+                                    {% endwith %}
+                                    {% else %}
+                                    <div class="progress-bar bg-primary progress-bar-striped" role="progressbar"
+                                         style="width: 0%"
+                                         aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                                        0 / 0
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-primary"><i class="fas fa-check-circle"></i></span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Проведено сеансов</span>
+                                                <span class="info-box-number">{{ session.proceeded_sessions|default_if_none:0 }} / {{ session.quantity }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-box">
+                                            <span class="info-box-icon bg-olive"><i class="fas fa-calendar-alt"></i></span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Осталось сеансов</span>
+                                                <span class="info-box-number">{{ session.quantity|default:0|sub:session.proceeded_sessions|default_if_none:session.quantity }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <div class="btn-group">
+                                            <form method="POST" action="{% url 'reception_registration:update_proceeded_sessions' session.id %}" style="display: inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="increment">
+                                                <button type="submit" class="btn btn-success" {% if session.proceeded_sessions >= session.quantity %}disabled{% endif %}>
+                                                    <i class="fas fa-plus"></i> Отметить сеанс как проведенный
+                                                </button>
+                                            </form>
+
+                                            <form method="POST" action="{% url 'reception_registration:update_proceeded_sessions' session.id %}" style="display: inline; margin-left: 10px;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="decrement">
+                                                <button type="submit" class="btn btn-warning" {% if session.proceeded_sessions <= 0 %}disabled{% endif %}>
+                                                    <i class="fas fa-minus"></i> Отменить последний сеанс
+                                                </button>
+                                            </form>
+
+                                            <button type="button" class="btn btn-primary" style="margin-left: 10px;" data-toggle="modal" data-target="#modal-set-sessions">
+                                                <i class="fas fa-edit"></i> Установить значение
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal for Setting Session Count -->
+                <div class="modal fade" id="modal-set-sessions">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Установить количество проведенных сеансов</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <form method="POST" action="{% url 'reception_registration:update_proceeded_sessions' session.id %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="proceeded_sessions">Количество проведенных сеансов:</label>
+                                        <input type="number" class="form-control" id="proceeded_sessions" name="proceeded_sessions"
+                                               min="0" max="{{ session.quantity }}" value="{{ session.proceeded_sessions|default_if_none:0 }}">
+                                        <small class="form-text text-muted">Максимальное количество: {{ session.quantity }}</small>
+                                    </div>
+                                    <input type="hidden" name="action" value="set">
+                                </div>
+                                <div class="modal-footer justify-content-between">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Закрыть</button>
+                                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Modal -->
+
                 <!-- SELECT2 EXAMPLE -->
                 <div class="card card-primary">
                     <div class="card-header">

@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionModel, PaymentModel
 from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer
@@ -46,12 +47,49 @@ def session_detailed_view(request, pk):
     payments = session.payments.all()
     methods = PaymentModel.method.field.choices
 
+    # Calculate remaining sessions
+    remaining_sessions = session.quantity - session.proceeded_sessions
+
     context = {
         'session': session,
         'payments': payments,
-        'methods': methods
+        'methods': methods,
+        'remaining_sessions': remaining_sessions
     }
     return render(request, 'reception/session_detailed.html', context)
+
+
+@login_required
+def update_proceeded_sessions(request, pk):
+    session = get_object_or_404(SessionModel, pk=pk)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'increment' and session.proceeded_sessions < session.quantity:
+            session.proceeded_sessions += 1
+            session.save()
+            messages.success(request, 'Сеанс успешно отмечен как проведенный.')
+
+        elif action == 'decrement' and session.proceeded_sessions > 0:
+            session.proceeded_sessions -= 1
+            session.save()
+            messages.success(request, 'Количество проведенных сеансов уменьшено.')
+
+        elif action == 'set':
+            try:
+                new_value = int(request.POST.get('proceeded_sessions', 0))
+                if 0 <= new_value <= session.quantity:
+                    session.proceeded_sessions = new_value
+                    session.save()
+                    messages.success(request, f'Количество проведенных сеансов обновлено до {new_value}.')
+                else:
+                    messages.error(request,
+                                   'Введенное значение должно быть между 0 и максимальным количеством сеансов.')
+            except ValueError:
+                messages.error(request, 'Введите корректное число.')
+
+    return redirect('reception_registration:session-detailed', pk=pk)
 
 
 @login_required
