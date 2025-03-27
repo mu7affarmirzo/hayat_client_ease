@@ -3,7 +3,8 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 
-from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionModel, PaymentModel
+from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionModel, PaymentModel, \
+    ReferralDoctorModel
 from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer
 from core.reception.forms.registration import PatientRegistrationForm, SessionForm
 
@@ -29,6 +30,7 @@ def register_booking_view(request):
     patients = PatientModel.objects.all()
     service_types = ServiceTypeModel.objects.all()
     therapists = Account.objects.filter(is_therapist=True)
+    referral_doctors = ReferralDoctorModel.objects.all()
 
     return render(
         request, 'reception/create_booking.html',
@@ -37,6 +39,7 @@ def register_booking_view(request):
             'patients': patients,
             'service_types': service_types,
             'therapists': therapists,
+            'referral_doctors': referral_doctors,
         }
     )
 

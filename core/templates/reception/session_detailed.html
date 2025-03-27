@@ -71,12 +71,12 @@
                         <!-- small box -->
                         <div class="small-box bg-info">
                             <div class="inner">
-                                <h3>{{ session.massage }}</h3>
+                                <h3>{{ session.referral_doctor|default_if_none:"--" }}</h3>
 
-                                <p>Услуга</p>
+                                <p>Врач напр.</p>
                             </div>
                             <div class="icon">
-                                <i class="ion ion-bag"></i>
+                                <i class="fas fa-user-md"></i>
                             </div>
                         </div>
                     </div>
