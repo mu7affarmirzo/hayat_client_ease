@@ -1,6 +1,7 @@
 {% load humanize %}
 {% load static %}
 {% load i18n %}
+{% load custom_filters %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,11 +85,12 @@
                                     <tr>
                                         <th style="width: 10px">#</th>
                                         <th>Имя гостя</th>
+                                        <th>Контакты</th>
                                         <th>Забронированное время</th>
                                         <th>Тип услуги</th>
                                         <th>Услуга</th>
-                                        <th>Терапевт</th>
-                                        <th>Кол-во</th>
+                                        <th>Массажист</th>
+                                        <th>Курс</th>
                                         <th>Обш.Сумма</th>
                                         <th>Скидка</th>
                                         <th>Итог. Сумма</th>
@@ -105,11 +107,12 @@
                                             <td>
                                                 <a href="{% url 'reception_registration:session-detailed' i.id %}">{{ i.patient.full_name }}</a>
                                             </td>
+                                            <td>{{ i.patient.mobile_phone_number|format_phone  }}</td>
                                             <td>{{ i.created_at }}</td>
                                             <td>{{ i.massage.type }}</td>
                                             <td>{{ i.massage.name }}</td>
                                             <td>{{ i.therapist.full_name }}</td>
-                                            <td>{{ i.quantity }}</td>
+                                            <td>{{ i.proceeded_sessions }}/{{ i.quantity }}</td>
                                             <td>{{ i.pre_discount_price|intcomma }} сум</td>
                                             <td>{{ i.discount  }} %</td>
                                             <td>{{ i.total_price|intcomma }} сум</td>

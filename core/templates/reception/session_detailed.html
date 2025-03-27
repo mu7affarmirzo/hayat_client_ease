@@ -136,7 +136,7 @@
                                 <div class="progress">
                                     {% if session.quantity > 0 %}
                                     {% with progress=session.proceeded_sessions|divisibleby:session.quantity %}
-                                    <div class="progress-bar bg-primary progress-bar-striped" role="progressbar"
+                                    <div class="progress-bar bg-success progress-bar-striped" role="progressbar"
                                          style="width: {{ progress|floatformat:0 }}%"
                                          aria-valuenow="{{ session.proceeded_sessions }}" aria-valuemin="0" aria-valuemax="{{ session.quantity }}">
                                         {{ session.proceeded_sessions }} / {{ session.quantity }}
