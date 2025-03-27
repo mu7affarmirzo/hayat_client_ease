@@ -1,0 +1,243 @@
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hayat Medical Center - Статистика терапевтов</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/dist/css/adminlte.min.css' %}">
+</head>
+<body class="hold-transition layout-top-nav">
+<div class="wrapper">
+    <!-- Navbar -->
+    {% include 'snippets/navbar.html' %}
+    <!-- /.navbar -->
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">Статистика терапевтов</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Главная</a></li>
+                            <li class="breadcrumb-item active">Статистика терапевтов</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Date Range Filter Form -->
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Выберите период</h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <form method="GET" action="{% url 'reception_registration:therapist_statistics' %}">
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <div class="form-group">
+                                        <label>Диапазон дат:</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text">
+                                                    <i class="far fa-calendar-alt"></i>
+                                                </span>
+                                            </div>
+                                            <input type="text" class="form-control float-right" id="date-range" name="date_range" value="{{ date_range }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="form-group" style="margin-top: 32px;">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-search"></i> Поиск
+                                        </button>
+                                        <a href="{% url 'reception_registration:therapist_statistics' %}" class="btn btn-default">
+                                            <i class="fas fa-sync"></i> Сбросить
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+
+                <!-- Therapist Statistics Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Результаты за период: {{ start_date }} - {{ end_date }}</h3>
+                        <div class="card-tools">
+                            <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" id="export-excel">
+                                <i class="fas fa-file-excel"></i> Экспорт в Excel
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10px">#</th>
+                                    <th>Терапевт</th>
+                                    <th>Ставка (%)</th>
+                                    <th>Кол-во сеансов</th>
+                                    <th>Сумма (сум)</th>
+                                    <th>К выплате (сум)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for therapist in therapists %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ therapist.full_name }}</td>
+                                    <td>{{ therapist.rate }}%</td>
+                                    <td>{{ therapist.session_count }}</td>
+                                    <td>{{ therapist.total_amount|intcomma }} сум</td>
+                                    <td>{{ therapist.payout_amount|intcomma }} сум</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">Нет данных для отображения</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light font-weight-bold">
+                                    <td colspan="3" class="text-right">Итого:</td>
+                                    <td>{{ total_sessions }}</td>
+                                    <td>{{ total_amount|intcomma }} сум</td>
+                                    <td>{{ total_payout|intcomma }} сум</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+                <!-- /.card -->
+
+                <!-- Summary Card -->
+                <div class="row">
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-info">
+                            <div class="inner">
+                                <h3>{{ total_sessions }}</h3>
+                                <p>Всего сеансов</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-success">
+                            <div class="inner">
+                                <h3>{{ total_amount|intcomma }}</h3>
+                                <p>Общая сумма (сум)</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-warning">
+                            <div class="inner">
+                                <h3>{{ total_payout|intcomma }}</h3>
+                                <p>К выплате (сум)</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                    <div class="col-lg-3 col-6">
+                        <!-- small box -->
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>{{ profit|intcomma }}</h3>
+                                <p>Выручка клиники (сум)</p>
+                            </div>
+                            <div class="icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ./col -->
+                </div>
+                <!-- /.row -->
+            </div>
+            <!-- /.container-fluid -->
+        </section>
+        <!-- /.content -->
+    </div>
+    <!-- /.content-wrapper -->
+
+    {% include 'snippets/footer.html' %}
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
+
+<!-- Page specific script -->
+<script>
+    $(function () {
+        // Date range picker with time picker
+        $('#date-range').daterangepicker({
+            locale: {
+                format: 'DD/MM/YYYY'
+            }
+        });
+
+        // Export to Excel
+        $('#export-excel').click(function() {
+            window.location.href = "{% url 'reception_registration:export_therapist_statistics' %}?date_range=" + $('#date-range').val();
+        });
+    });
+</script>
+</body>
+</html>
