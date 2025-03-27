@@ -579,23 +579,42 @@
         <div id="print-check-content" style="display: none;">
             <div style="width: 80mm; font-family: 'Courier New', monospace; font-size: 12px;">
                 <div style="text-align: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0;">Hayat Medical Center</h3>
+                    <h3 style="margin: 0;">Hayat Kids Massage</h3>
                     <p style="margin: 5px 0;">================================</p>
                 </div>
 
                 <div style="margin-bottom: 10px;">
-                    <p><strong>Чек №:</strong> {{ session.id }}-{{ session.proceeded_sessions }}</p>
-                    <p><strong>Дата:</strong> <span id="check-date"></span></p>
-                    <p><strong>Пациент:</strong> {{ session.patient.full_name }}</p>
-                    <p><strong>Услуга:</strong> {{ session.massage.name }}</p>
-                    <p><strong>Терапевт:</strong> {{ session.therapist.full_name }}</p>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td>Чек №: {{ session.id }}</td>
+                            <td style="text-align: right;">Сеанс: {{ session.proceeded_sessions }}</td>
+                        </tr>
+                        <tr>
+                            <td>Пациент: {{ session.patient.full_name }}</td>
+                            <td style="text-align: right;"><span id="check-date"></span></td>
+                        </tr>
+                    </table>
                 </div>
-
-                <div style="margin-bottom: 10px;">
-                    <p><strong>Сеанс:</strong> {{ session.proceeded_sessions }} из {{ session.quantity }}</p>
-                    <p><strong>Стоимость услуги:</strong> {{ session.total_price|intcomma }} сум</p>
-                    <p><strong>Оплачено:</strong> {{ session.overall_payed_amount|default_if_none:0|intcomma }} сум</p>
-                    <p><strong>Остаток:</strong> {{ session.remaining_payed_amount|default_if_none:0|intcomma }} сум</p>
+                
+                <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; margin: 10px 0;">
+                    <table style="width: 100%;">
+                        <!-- Column Headers -->
+                        <tr>
+                            <td style="width: 60%; font-weight: bold;">Название</td>
+                            <td style="width: 10%; text-align: center; font-weight: bold;">Кол-во</td>
+                            <td style="width: 30%; text-align: right; font-weight: bold;">Сумма</td>
+                        </tr>
+                        <!-- Separator line -->
+                        <tr>
+                            <td colspan="3" style="border-bottom: 1px dotted #000; padding-top: 3px;"></td>
+                        </tr>
+                        <!-- Data row -->
+                        <tr>
+                            <td style="width: 60%; padding-top: 3px;">{{ session.massage.name }}</td>
+                            <td style="width: 10%; text-align: center; padding-top: 3px;">1</td>
+                            <td style="width: 30%; text-align: right; padding-top: 3px;">{{ session.massage.price|intcomma }} сум</td>
+                        </tr>
+                    </table>
                 </div>
 
                 <div style="text-align: center; margin-top: 15px;">
