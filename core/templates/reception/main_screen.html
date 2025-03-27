@@ -111,8 +111,18 @@
                                                 {% endif %}
                                             </a>
                                         </th>
-                                        <th>Забронированное время</th>
-                                        <th>Тип услуги</th>
+                                        <th>
+                                            <a href="?{% if query %}table_search={{ query }}&{% endif %}sort={% if sort == 'created_at' %}-created_at{% else %}created_at{% endif %}">
+                                                Забронированное время
+                                                {% if sort == 'created_at' %}
+                                                    <i class="fas fa-sort-up"></i>
+                                                {% elif sort == '-created_at' %}
+                                                    <i class="fas fa-sort-down"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
                                         <th>Услуга</th>
                                         <th>Массажист</th>
                                         <th>Курс</th>
@@ -145,7 +155,6 @@
                                             </td>
                                             <td>{{ i.patient.mobile_phone_number|format_phone }}</td>
                                             <td>{{ i.created_at }}</td>
-                                            <td>{{ i.massage.type }}</td>
                                             <td>{{ i.massage.name }}</td>
                                             <td>{{ i.therapist.full_name }}</td>
                                             <td>{{ i.proceeded_sessions }}/{{ i.quantity }}</td>
