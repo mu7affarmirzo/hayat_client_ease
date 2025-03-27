@@ -54,7 +54,7 @@
                                     <label for="arrival-date-picker">Время брона</label>
                                     <div class="card-tools">
                                         <div class="input-group input-group-sm" style="width: 150px;">
-                                            <input type="date" id="arrival-date-picker" class="form-control" />
+                                            <input type="date" id="arrival-date-picker" class="form-control"/>
                                         </div>
                                     </div>
                                 </div>
@@ -75,6 +75,9 @@
                                                 </button>
                                             </div>
                                         </div>
+                                        {% if sort %}
+                                            <input type="hidden" name="sort" value="{{ sort }}">
+                                        {% endif %}
                                     </form>
                                 </div>
 
@@ -84,8 +87,30 @@
                                     <thead>
                                     <tr>
                                         <th style="width: 10px">#</th>
-                                        <th>Имя гостя</th>
-                                        <th>Контакты</th>
+                                        <th>
+                                            <a href="?{% if query %}table_search={{ query }}&{% endif %}sort={% if sort == 'patient__f_name' %}-patient__f_name{% else %}patient__f_name{% endif %}">
+                                                Имя гостя
+                                                {% if sort == 'patient__f_name' %}
+                                                    <i class="fas fa-sort-up"></i>
+                                                {% elif sort == '-patient__f_name' %}
+                                                    <i class="fas fa-sort-down"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
+                                        <th>
+                                            <a href="?{% if query %}table_search={{ query }}&{% endif %}sort={% if sort == 'patient__mobile_phone_number' %}-patient__mobile_phone_number{% else %}patient__mobile_phone_number{% endif %}">
+                                                Контакты
+                                                {% if sort == 'patient__mobile_phone_number' %}
+                                                    <i class="fas fa-sort-up"></i>
+                                                {% elif sort == '-patient__mobile_phone_number' %}
+                                                    <i class="fas fa-sort-down"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
                                         <th>Забронированное время</th>
                                         <th>Тип услуги</th>
                                         <th>Услуга</th>
@@ -95,7 +120,18 @@
                                         <th>Скидка</th>
                                         <th>Итог. Сумма</th>
                                         <th>Оплаченная сумма</th>
-                                        <th>Статус оплаты</th>
+                                        <th>
+                                            <a href="?{% if query %}table_search={{ query }}&{% endif %}sort={% if sort == 'is_paid' %}-is_paid{% else %}is_paid{% endif %}">
+                                                Статус оплаты
+                                                {% if sort == 'is_paid' %}
+                                                    <i class="fas fa-sort-up"></i>
+                                                {% elif sort == '-is_paid' %}
+                                                    <i class="fas fa-sort-down"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
                                     </tr>
 
                                     </thead>
@@ -107,16 +143,16 @@
                                             <td>
                                                 <a href="{% url 'reception_registration:session-detailed' i.id %}">{{ i.patient.full_name }}</a>
                                             </td>
-                                            <td>{{ i.patient.mobile_phone_number|format_phone  }}</td>
+                                            <td>{{ i.patient.mobile_phone_number|format_phone }}</td>
                                             <td>{{ i.created_at }}</td>
                                             <td>{{ i.massage.type }}</td>
                                             <td>{{ i.massage.name }}</td>
                                             <td>{{ i.therapist.full_name }}</td>
                                             <td>{{ i.proceeded_sessions }}/{{ i.quantity }}</td>
                                             <td>{{ i.pre_discount_price|intcomma }} сум</td>
-                                            <td>{{ i.discount  }} %</td>
+                                            <td>{{ i.discount }} %</td>
                                             <td>{{ i.total_price|intcomma }} сум</td>
-                                            <td>{{ i.overall_payed_amount|default_if_none:0|intcomma}} сум</td>
+                                            <td>{{ i.overall_payed_amount|default_if_none:0|intcomma }} сум</td>
                                             <td>
                                                 {% if i.overall_payed_amount != 0 and i.is_paid == False %}
                                                     <span class="bg-warning badge">Частично Оплачено</span>
