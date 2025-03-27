@@ -18,6 +18,7 @@ class SessionForm(forms.ModelForm):
             'therapist',
             'quantity',
             'discount',
+            'referral_doctor',
         ]
 
 

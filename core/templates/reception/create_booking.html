@@ -161,6 +161,24 @@
                                         <!-- /.col -->
                                     </div>
 
+                                <!-- New Referral Doctor Row -->
+                                    <div class="row">
+                                        <div class="col-12 col-sm-6">
+                                            <div class="form-group">
+                                                <label>Направляющий врач</label>
+                                                <select class="form-control select2 select2-primary"
+                                                        name="referral_doctor"
+                                                        data-dropdown-css-class="select2-primary" style="width: 100%;">
+                                                    <option value="">---------</option>
+                                                    {% for doctor in referral_doctors %}
+                                                        <option value="{{ doctor.id }}">{{ doctor.full_name }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End New Referral Doctor Row -->
+
                                     <div class="col-12 col-sm-6">
                                         <div class="form-group">
                                             <label>Итоговая Цена</label>

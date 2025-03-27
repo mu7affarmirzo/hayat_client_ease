@@ -57,10 +57,38 @@ def logout_view(request):
 # @role_required(role='sanatorium', login_url='sanatorium_auth:logout')
 def main_screen_view(request):
 
+    # Get query parameters
+    query = request.GET.get('table_search', '')
+    sort_param = request.GET.get('sort', '')
+
+    # Start with all sessions or filter by your business logic
     sessions = SessionModel.objects.all()
+
+    # Apply search if provided
+    if query:
+        sessions = sessions.filter(
+            Q(patient__f_name__icontains=query) |
+            Q(patient__created_at__icontains=query) |
+            Q(patient__mobile_phone_number__icontains=query) |
+            Q(massage__name__icontains=query)
+        )
+
+    # Apply sorting if provided
+    if sort_param:
+        sessions = sessions.order_by(sort_param)
+    else:
+        # Default sort order (e.g., newest first)
+        sessions = sessions.order_by('-created_at')
+
+    # Pagination if you're using it
     sessions = paginate_page(request, sessions)
 
-    context = {'sessions': sessions}
+    context = {
+        'sessions': sessions,
+        'query': query,
+        'sort': sort_param,
+    }
+
     return render(request, 'reception/main_screen.html', context)
 
 
