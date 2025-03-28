@@ -214,9 +214,8 @@
                                 <th style="width: 10px">#</th>
                                 <th>Терапевт</th>
                                 <th>Сумма (сум)</th>
-                                <th>Ставка (%)</th>
                                 <th>Кол-во сеансов</th>
-                                <th>Сумма после (сум)</th>
+                                <th>Ставка (%)</th>
                                 <th>К выплате (сум)</th>
                             </tr>
                             </thead>
@@ -225,10 +224,9 @@
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>{{ therapist.full_name }}</td>
-                                    <td>{{ therapist.total_amount|intcomma }} сум</td>
-                                    <td>{{ therapist.rate }}%</td>
-                                    <td>{{ therapist.session_count }}</td>
                                     <td>{{ therapist.after_share_amount|intcomma }} сум</td>
+                                    <td>{{ therapist.session_count }}</td>
+                                    <td>{{ therapist.rate }}%</td>
                                     <td>{{ therapist.payout_amount|intcomma }} сум</td>
                                 </tr>
                             {% empty %}
@@ -240,10 +238,9 @@
                             <tfoot>
                             <tr class="bg-light font-weight-bold">
                                 <td colspan="2" class="text-right">Итого:</td>
-                                <td>{{ total_amount|intcomma }} сум</td>
+                                <td>{{ owner2_share|intcomma }} сум</td>
                                 <td>-</td>
                                 <td>{{ total_sessions }}</td>
-                                <td>{{ total_amount|intcomma }} сум</td>
                                 <td>{{ total_payout|intcomma }} сум</td>
                             </tr>
                             </tfoot>
