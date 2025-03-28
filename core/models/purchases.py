@@ -4,7 +4,7 @@ from django.utils import timezone
 import datetime
 
 
-from core.models import PatientModel, ServiceModel, Account
+from core.models import PatientModel, ServiceModel, Account, TherapistModel
 
 
 class ReferralDoctorModel(models.Model):
@@ -58,7 +58,7 @@ class ReferralDoctorModel(models.Model):
 class SessionModel(models.Model):
     patient = models.ForeignKey(PatientModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
     massage = models.ForeignKey(ServiceModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
-    therapist = models.ForeignKey(Account, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
+    therapist = models.ForeignKey(TherapistModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
 
     referral_doctor = models.ForeignKey(ReferralDoctorModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
 

@@ -47,6 +47,14 @@ class Account(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_therapist = models.BooleanField(default=False)
+
+    rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name="Ставка терапевта (%)"
+    )
+
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -89,3 +97,36 @@ class AccountRoleModel(models.Model):
 
     def __str__(self):
         return f"{self.account} {self.role}"
+
+
+class TherapistModel(models.Model):
+    f_name = models.CharField(max_length=50, null=True)
+    l_name = models.CharField(max_length=50, null=True)
+    m_name = models.CharField(max_length=50, null=True)
+    phone_number = models.CharField(max_length=30, null=True)
+
+    sex = models.BooleanField(default=True)
+
+    rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=0,
+        verbose_name="Ставка терапевта (%)"
+    )
+
+    def __str__(self):
+        try:
+            m_name = self.m_name
+        except:
+            m_name = ''
+
+        return f"{self.f_name} {self.l_name} {m_name}"
+
+    @property
+    def full_name(self):
+        try:
+            m_name = self.m_name
+        except:
+            m_name = ''
+
+        return f"{self.f_name} {self.l_name} {m_name}"
