@@ -10,8 +10,7 @@
     <title>Hayat Medical Center - Статистика терапевтов</title>
 
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
@@ -63,7 +62,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <form method="GET" action="{% url 'reception_registration:therapist_statistics' %}">
+                        <form method="GET" action="{% url 'administration:therapist_statistics' %}">
                             <div class="row">
                                 <div class="col-md-5">
                                     <div class="form-group">
@@ -74,8 +73,7 @@
                                                     <i class="far fa-calendar-alt"></i>
                                                 </span>
                                             </div>
-                                            <input type="text" class="form-control float-right" id="date-range"
-                                                   name="date_range" value="{{ date_range }}">
+                                            <input type="text" class="form-control float-right" id="date-range" name="date_range" value="{{ date_range }}">
                                         </div>
                                     </div>
                                 </div>
@@ -84,8 +82,7 @@
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-search"></i> Поиск
                                         </button>
-                                        <a href="{% url 'reception_registration:therapist_statistics' %}"
-                                           class="btn btn-default">
+                                        <a href="{% url 'administration:therapist_statistics' %}" class="btn btn-default">
                                             <i class="fas fa-sync"></i> Сбросить
                                         </a>
                                     </div>
@@ -105,8 +102,11 @@
                             <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <button type="button" class="btn btn-success btn-sm" id="export-excel">
+                            <button type="button" class="btn btn-success btn-sm" id="export-excel" style="margin-right: 5px;">
                                 <i class="fas fa-file-excel"></i> Экспорт в Excel
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="export-word">
+                                <i class="fas fa-file-word"></i> Экспорт в Word
                             </button>
                         </div>
                     </div>
@@ -114,17 +114,17 @@
                     <div class="card-body">
                         <table class="table table-bordered table-striped">
                             <thead>
-                            <tr>
-                                <th style="width: 10px">#</th>
-                                <th>Терапевт</th>
-                                <th>Ставка (%)</th>
-                                <th>Кол-во сеансов</th>
-                                <th>Сумма (сум)</th>
-                                <th>К выплате (сум)</th>
-                            </tr>
+                                <tr>
+                                    <th style="width: 10px">#</th>
+                                    <th>Терапевт</th>
+                                    <th>Ставка (%)</th>
+                                    <th>Кол-во сеансов</th>
+                                    <th>Сумма (сум)</th>
+                                    <th>К выплате (сум)</th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {% for therapist in therapists %}
+                                {% for therapist in therapists %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>{{ therapist.full_name }}</td>
@@ -133,19 +133,19 @@
                                     <td>{{ therapist.total_amount|intcomma }} сум</td>
                                     <td>{{ therapist.payout_amount|intcomma }} сум</td>
                                 </tr>
-                            {% empty %}
+                                {% empty %}
                                 <tr>
                                     <td colspan="6" class="text-center">Нет данных для отображения</td>
                                 </tr>
-                            {% endfor %}
+                                {% endfor %}
                             </tbody>
                             <tfoot>
-                            <tr class="bg-light font-weight-bold">
-                                <td colspan="3" class="text-right">Итого:</td>
-                                <td>{{ total_sessions }}</td>
-                                <td>{{ total_amount|intcomma }} сум</td>
-                                <td>{{ total_payout|intcomma }} сум</td>
-                            </tr>
+                                <tr class="bg-light font-weight-bold">
+                                    <td colspan="3" class="text-right">Итого:</td>
+                                    <td>{{ total_sessions }}</td>
+                                    <td>{{ total_amount|intcomma }} сум</td>
+                                    <td>{{ total_payout|intcomma }} сум</td>
+                                </tr>
                             </tfoot>
                         </table>
                     </div>
@@ -238,8 +238,8 @@
         });
 
         // Export to Excel
-        $('#export-excel').click(function () {
-            window.location.href = "{% url 'reception_registration:export_therapist_statistics' %}?date_range=" + $('#date-range').val();
+        $('#export-excel').click(function() {
+            window.location.href = "{% url 'administration:therapist_statistics' %}?date_range=" + $('#date-range').val();
         });
     });
 </script>
