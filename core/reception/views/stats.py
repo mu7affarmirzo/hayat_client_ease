@@ -57,10 +57,9 @@ def therapist_statistics(request):
         ).aggregate(total=Sum('amount'))['total'] or 0
 
         # Calculate statistics
-        session_count = sessions.aggregate(count=Count('id'))['count'] or 0
-
+        session_count = sessions.aggregate(total=Sum('proceeded_sessions'))['total'] or 0
         # Skip therapists with no sessions or no payments
-        if session_count == 0 or paid_amount == 0:
+        if paid_amount == 0:
             continue
 
         # Add to totals
