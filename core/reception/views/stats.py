@@ -78,9 +78,10 @@ def therapist_statistics(request):
         # Add to stats list
         stats.append({
             'full_name': therapist.full_name,
+            'total_amount': total_amount,
             'rate': rate,
             'session_count': session_count,
-            'total_amount': paid_amount,
+            'after_share_amount': owner_share,
             'payout_amount': payout,
         })
 
