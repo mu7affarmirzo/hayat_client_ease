@@ -10,7 +10,8 @@
     <title>Hayat Medical Center - Статистика терапевтов</title>
 
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
@@ -43,6 +44,7 @@
         </div>
         <!-- /.content-header -->
 
+
         <!-- Main content -->
         <section class="content">
             <div class="container-fluid">
@@ -54,6 +56,97 @@
                         </div>
                     {% endfor %}
                 {% endif %}
+
+                <!-- Add this after the summary cards in the therapist_statistics.html template -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-primary">
+                            <div class="card-header">
+                                <h3 class="card-title">Распределение прибыли</h3>
+                                <small class="text-light ml-3">(на основе фактически оплаченных сумм)</small>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="info-box bg-gradient-info">
+                                            <span class="info-box-icon"><i class="fas fa-money-bill-wave"></i></span>
+                                            <div class="info-box-content">
+                                                <span class="info-box-text">Общая оплаченная сумма</span>
+                                                <span class="info-box-number">{{ total_amount|intcomma }} сум</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-primary">
+                                                <h3 class="card-title">Партнер 1</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th>Доля (50%)</th>
+                                                        <td class="text-right">{{ owner1_share|intcomma }} сум</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Выплаты терапевтам</th>
+                                                        <td class="text-right">{{ total_payout|intcomma }} сум</td>
+                                                    </tr>
+                                                    <tr class="bg-light">
+                                                        <th>Итог</th>
+                                                        <td class="text-right font-weight-bold">{{ owner1_final|intcomma }}
+                                                            сум
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="card">
+                                            <div class="card-header bg-success">
+                                                <h3 class="card-title">Партнер 2</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th>Доля (50%)</th>
+                                                        <td class="text-right">{{ owner2_share|intcomma }} сум</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Выплаты</th>
+                                                        <td class="text-right">0 сум</td>
+                                                    </tr>
+                                                    <tr class="bg-light">
+                                                        <th>Итог</th>
+                                                        <td class="text-right font-weight-bold">{{ owner2_share|intcomma }}
+                                                            сум
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <div class="callout callout-info">
+                                            <h5><i class="fas fa-info"></i> Примечание:</h5>
+                                            <p>Общая сумма делится поровну между двумя партнерами (50/50). Терапевты
+                                                получают свой процент от доли первого партнера, в соответствии с их
+                                                ставкой. Расчет производится только на основе фактически оплаченных
+                                                сумм.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Date Range Filter Form -->
                 <div class="card card-primary">
@@ -73,7 +166,8 @@
                                                     <i class="far fa-calendar-alt"></i>
                                                 </span>
                                             </div>
-                                            <input type="text" class="form-control float-right" id="date-range" name="date_range" value="{{ date_range }}">
+                                            <input type="text" class="form-control float-right" id="date-range"
+                                                   name="date_range" value="{{ date_range }}">
                                         </div>
                                     </div>
                                 </div>
@@ -82,7 +176,8 @@
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-search"></i> Поиск
                                         </button>
-                                        <a href="{% url 'administration:therapist_statistics' %}" class="btn btn-default">
+                                        <a href="{% url 'administration:therapist_statistics' %}"
+                                           class="btn btn-default">
                                             <i class="fas fa-sync"></i> Сбросить
                                         </a>
                                     </div>
@@ -102,7 +197,8 @@
                             <button type="button" class="btn btn-tool" data-card-widget="collapse">
                                 <i class="fas fa-minus"></i>
                             </button>
-                            <button type="button" class="btn btn-success btn-sm" id="export-excel" style="margin-right: 5px;">
+                            <button type="button" class="btn btn-success btn-sm" id="export-excel"
+                                    style="margin-right: 5px;">
                                 <i class="fas fa-file-excel"></i> Экспорт в Excel
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" id="export-word">
@@ -114,17 +210,17 @@
                     <div class="card-body">
                         <table class="table table-bordered table-striped">
                             <thead>
-                                <tr>
-                                    <th style="width: 10px">#</th>
-                                    <th>Терапевт</th>
-                                    <th>Ставка (%)</th>
-                                    <th>Кол-во сеансов</th>
-                                    <th>Сумма (сум)</th>
-                                    <th>К выплате (сум)</th>
-                                </tr>
+                            <tr>
+                                <th style="width: 10px">#</th>
+                                <th>Терапевт</th>
+                                <th>Ставка (%)</th>
+                                <th>Кол-во сеансов</th>
+                                <th>Сумма (сум)</th>
+                                <th>К выплате (сум)</th>
+                            </tr>
                             </thead>
                             <tbody>
-                                {% for therapist in therapists %}
+                            {% for therapist in therapists %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>{{ therapist.full_name }}</td>
@@ -133,19 +229,19 @@
                                     <td>{{ therapist.total_amount|intcomma }} сум</td>
                                     <td>{{ therapist.payout_amount|intcomma }} сум</td>
                                 </tr>
-                                {% empty %}
+                            {% empty %}
                                 <tr>
                                     <td colspan="6" class="text-center">Нет данных для отображения</td>
                                 </tr>
-                                {% endfor %}
+                            {% endfor %}
                             </tbody>
                             <tfoot>
-                                <tr class="bg-light font-weight-bold">
-                                    <td colspan="3" class="text-right">Итого:</td>
-                                    <td>{{ total_sessions }}</td>
-                                    <td>{{ total_amount|intcomma }} сум</td>
-                                    <td>{{ total_payout|intcomma }} сум</td>
-                                </tr>
+                            <tr class="bg-light font-weight-bold">
+                                <td colspan="3" class="text-right">Итого:</td>
+                                <td>{{ total_sessions }}</td>
+                                <td>{{ total_amount|intcomma }} сум</td>
+                                <td>{{ total_payout|intcomma }} сум</td>
+                            </tr>
                             </tfoot>
                         </table>
                     </div>
@@ -209,6 +305,7 @@
                     <!-- ./col -->
                 </div>
                 <!-- /.row -->
+
             </div>
             <!-- /.container-fluid -->
         </section>
@@ -238,7 +335,7 @@
         });
 
         // Export to Excel
-        $('#export-excel').click(function() {
+        $('#export-excel').click(function () {
             window.location.href = "{% url 'administration:therapist_statistics' %}?date_range=" + $('#date-range').val();
         });
     });

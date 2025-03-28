@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 
 from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionModel, PaymentModel, \
-    ReferralDoctorModel
+    ReferralDoctorModel, TherapistModel
 from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer
 from core.reception.forms.registration import PatientRegistrationForm, SessionForm
 
@@ -29,7 +29,7 @@ def register_booking_view(request):
         form = SessionForm()
     patients = PatientModel.objects.all()
     service_types = ServiceTypeModel.objects.all()
-    therapists = Account.objects.filter(is_therapist=True)
+    therapists = TherapistModel.objects.all()
     referral_doctors = ReferralDoctorModel.objects.all()
 
     return render(
