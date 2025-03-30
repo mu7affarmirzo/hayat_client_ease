@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.shortcuts import render, redirect
 
 from core.adminstration.forms.auth import AccountAuthenticationForm
-from core.models import PaymentModel, SessionModel
+from core.models import PaymentModel, SessionBookingModel
 
 
 BOOKINGS_PER_PAGE = 30
@@ -62,7 +62,7 @@ def main_screen_view(request):
     sort_param = request.GET.get('sort', '')
 
     # Start with all sessions or filter by your business logic
-    sessions = SessionModel.objects.all()
+    sessions = SessionBookingModel.objects.all()
 
     # Apply search if provided
     if query:
@@ -94,7 +94,7 @@ def main_screen_view(request):
 
 def not_paid_list_view(request):
 
-    sessions = SessionModel.objects.filter(is_paid=False)
+    sessions = SessionBookingModel.objects.filter(is_paid=False)
     sessions = paginate_page(request, sessions)
 
     context = {'sessions': sessions}
@@ -107,14 +107,14 @@ def get_booking_queryset(query=None, stage=None):
 
     for q in queries:
         if stage:
-            sessions = (SessionModel.objects.filter(
+            sessions = (SessionBookingModel.objects.filter(
                 Q(series__icontains=q) |
                 Q(patient__f_name__icontains=q) |
                 Q(patient__mid_name__icontains=q) |
                 Q(patient__mobile_phone_number__icontains=q)
             ).distinct())
         else:
-            sessions = (SessionModel.objects.filter(
+            sessions = (SessionBookingModel.objects.filter(
                 Q(series__icontains=q) |
                 Q(patient__f_name__icontains=q) |
                 Q(patient__mid_name__icontains=q) |

@@ -1,10 +1,12 @@
+from django.utils import timezone
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 
-from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionModel, PaymentModel, \
-    ReferralDoctorModel, TherapistModel
+from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionBookingModel, PaymentModel, \
+    ReferralDoctorModel, TherapistModel, IndividualSessionModel
 from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer
 from core.reception.forms.registration import PatientRegistrationForm, SessionForm
 
@@ -44,27 +46,144 @@ def register_booking_view(request):
     )
 
 
+# @login_required
+# def session-detailed_view(request, pk):
+#     session = get_object_or_404(SessionBookingModel, pk=pk)
+#     payments = session.payments.all()
+#     methods = PaymentModel.method.field.choices
+#
+#     # Calculate remaining sessions
+#     remaining_sessions = session.quantity - session.proceeded_sessions
+#
+#     context = {
+#         'session': session,
+#         'payments': payments,
+#         'methods': methods,
+#         'remaining_sessions': remaining_sessions
+#     }
+#     return render(request, 'reception/session-detailed.html', context)
+
+
 @login_required
 def session_detailed_view(request, pk):
-    session = get_object_or_404(SessionModel, pk=pk)
-    payments = session.payments.all()
+    """View for detailed session information with individual sessions"""
+    booking = get_object_or_404(SessionBookingModel, pk=pk)
+    payments = booking.payments.all()
     methods = PaymentModel.method.field.choices
 
-    # Calculate remaining sessions
-    remaining_sessions = session.quantity - session.proceeded_sessions
+    # Get individual sessions
+    individual_sessions = booking.individual_sessions.all().order_by('session_number')
 
     context = {
-        'session': session,
+        'session': booking,  # Keep the same variable name for backward compatibility
+        'individual_sessions': individual_sessions,
         'payments': payments,
         'methods': methods,
-        'remaining_sessions': remaining_sessions
     }
     return render(request, 'reception/session_detailed.html', context)
 
 
 @login_required
+def confirm_individual_session(request, booking_pk, session_number):
+    """Mark an individual session as completed"""
+    booking = get_object_or_404(SessionBookingModel, pk=booking_pk)
+
+    try:
+        # Get the individual session
+        session = booking.individual_sessions.get(session_number=session_number)
+
+        # Check if previous sessions are completed
+        previous_sessions = booking.individual_sessions.filter(
+            session_number__lt=session_number
+        )
+
+        if previous_sessions.exists() and previous_sessions.filter(status='pending').exists():
+            messages.error(request, 'Нельзя отметить этот сеанс - предыдущие сеансы еще не проведены.')
+            return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+        # Mark as completed
+        session.status = 'completed'
+        session.completed_at = timezone.now()
+        session.save()
+
+        # Manually update the proceeded_sessions count
+        completed_count = booking.individual_sessions.filter(status='completed').count()
+        booking.proceeded_sessions = completed_count
+        booking.save(update_fields=['proceeded_sessions'])
+
+        messages.success(request, f'Сеанс #{session_number} успешно отмечен как проведенный')
+    except IndividualSessionModel.DoesNotExist:
+        messages.error(request, f'Сеанс #{session_number} не найден')
+
+    return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+
+@login_required
+def cancel_individual_session(request, booking_pk, session_number):
+    """Mark an individual session as canceled"""
+    booking = get_object_or_404(SessionBookingModel, pk=booking_pk)
+
+    try:
+        # Get the individual session
+        session = booking.individual_sessions.get(session_number=session_number)
+
+        # Only completed sessions can be canceled
+        if session.status != 'completed':
+            messages.error(request, f'Сеанс #{session_number} не является проведенным и не может быть отменен')
+            return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+        # Check if this is the last completed session
+        last_completed = booking.individual_sessions.filter(
+            status='completed'
+        ).order_by('-session_number').first()
+
+        if last_completed.session_number != session.session_number:
+            messages.error(request, 'Можно отменить только последний проведенный сеанс')
+            return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+        # Mark as pending again
+        session.status = 'pending'
+        session.completed_at = None
+        session.save()
+
+        # Manually update the proceeded_sessions count
+        completed_count = booking.individual_sessions.filter(status='completed').count()
+        booking.proceeded_sessions = completed_count
+        booking.save(update_fields=['proceeded_sessions'])
+
+        messages.success(request, f'Сеанс #{session_number} отменен')
+    except IndividualSessionModel.DoesNotExist:
+        messages.error(request, f'Сеанс #{session_number} не найден')
+
+    return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+
+@login_required
+def update_session_notes(request, booking_pk, session_number):
+    """Update notes for an individual session"""
+    booking = get_object_or_404(SessionBookingModel, pk=booking_pk)
+
+    if request.method == 'POST':
+        notes = request.POST.get('notes', '')
+
+        try:
+            # Get the individual session
+            session = booking.individual_sessions.get(session_number=session_number)
+
+            # Update notes
+            session.notes = notes
+            session.save()
+
+            messages.success(request, f'Примечания для сеанса #{session_number} обновлены')
+        except IndividualSessionModel.DoesNotExist:
+            messages.error(request, f'Сеанс #{session_number} не найден')
+
+    return redirect('reception_registration:session-detailed', pk=booking_pk)
+
+
+@login_required
 def update_proceeded_sessions(request, pk):
-    session = get_object_or_404(SessionModel, pk=pk)
+    session = get_object_or_404(SessionBookingModel, pk=pk)
 
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -97,7 +216,7 @@ def update_proceeded_sessions(request, pk):
 
 @login_required
 def singular_payment_view(request, pk):
-    session = get_object_or_404(SessionModel, pk=pk)
+    session = get_object_or_404(SessionBookingModel, pk=pk)
 
     if request.method == 'POST':
         form = SingularPaymentCreateSerializer(data=request.POST)
@@ -112,7 +231,7 @@ def singular_payment_view(request, pk):
 
 @login_required
 def whole_payment_view(request, pk):
-    session = get_object_or_404(SessionModel, pk=pk)
+    session = get_object_or_404(SessionBookingModel, pk=pk)
 
     if request.method == 'POST':
         form = WholePaymentCreateSerializer(data=request.POST)

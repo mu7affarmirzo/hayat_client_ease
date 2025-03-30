@@ -38,6 +38,22 @@
           href="{% static 'adminlte3_assets/plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
     <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/summernote/summernote-bs4.min.css' %}">
+
+    <!-- Custom CSS for session cards -->
+    <style>
+        .session-card {
+            transition: all 0.3s ease;
+        }
+
+        .session-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .clickable {
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="hold-transition layout-top-nav">
 <div class="wrapper">
@@ -46,7 +62,6 @@
     <!-- /.navbar -->
 
     <!-- Content Wrapper. Contains page content -->
-
     <div class="content-wrapper">
         <!-- Content Header (Page header) -->
         <br>
@@ -133,9 +148,9 @@
                                 <h3 class="card-title">Отслеживание сеансов</h3>
                             </div>
                             <div class="card-body">
-                                <div class="progress">
+                                <div class="progress mb-4">
                                     {% if session.quantity > 0 %}
-                                        {% with progress=session.proceeded_sessions|divisibleby:session.quantity %}
+                                        {% with progress=session.proceeded_sessions|multiply:100|divide:session.quantity %}
                                             <div class="progress-bar bg-success progress-bar-striped" role="progressbar"
                                                  style="width: {{ progress|floatformat:0 }}%"
                                                  aria-valuenow="{{ session.proceeded_sessions }}" aria-valuemin="0"
@@ -152,11 +167,10 @@
                                     {% endif %}
                                 </div>
 
-                                <div class="row mt-4">
+                                <div class="row mt-4 mb-4">
                                     <div class="col-md-6">
                                         <div class="info-box">
-                                            <span class="info-box-icon bg-primary"><i
-                                                    class="fas fa-check-circle"></i></span>
+                                            <span class="info-box-icon bg-primary"><i class="fas fa-check-circle"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Проведено сеансов</span>
                                                 <span class="info-box-number">{{ session.proceeded_sessions|default_if_none:0 }} / {{ session.quantity }}</span>
@@ -165,8 +179,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="info-box">
-                                            <span class="info-box-icon bg-olive"><i
-                                                    class="fas fa-calendar-alt"></i></span>
+                                            <span class="info-box-icon bg-olive"><i class="fas fa-calendar-alt"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Осталось сеансов</span>
                                                 <span class="info-box-number">{{ session.quantity|default:0|sub:session.proceeded_sessions|default_if_none:session.quantity }}</span>
@@ -175,69 +188,169 @@
                                     </div>
                                 </div>
 
-                                {#                                <div class="row mt-3">#}
-                                {#                                    <div class="col-md-12">#}
-                                {#                                        <div class="btn-group">#}
-                                {#                                            <form method="POST" action="{% url 'reception_registration:update_proceeded_sessions' session.id %}" style="display: inline;">#}
-                                {#                                                {% csrf_token %}#}
-                                {#                                                <input type="hidden" name="action" value="increment">#}
-                                {#                                                <button type="submit" class="btn btn-success" {% if session.proceeded_sessions >= session.quantity %}disabled{% endif %}>#}
-                                {#                                                    <i class="fas fa-plus"></i> Отметить сеанс как проведенный#}
-                                {#                                                </button>#}
-                                {#                                            </form>#}
-                                {##}
-                                {#                                            <form method="POST" action="{% url 'reception_registration:update_proceeded_sessions' session.id %}" style="display: inline; margin-left: 10px;">#}
-                                {#                                                {% csrf_token %}#}
-                                {#                                                <input type="hidden" name="action" value="decrement">#}
-                                {#                                                <button type="submit" class="btn btn-warning" {% if session.proceeded_sessions <= 0 %}disabled{% endif %}>#}
-                                {#                                                    <i class="fas fa-minus"></i> Отменить последний сеанс#}
-                                {#                                                </button>#}
-                                {#                                            </form>#}
-                                {##}
-                                {#                                            <button type="button" class="btn btn-primary" style="margin-left: 10px;" data-toggle="modal" data-target="#modal-set-sessions">#}
-                                {#                                                <i class="fas fa-edit"></i> Установить значение#}
-                                {#                                            </button>#}
-                                {#                                        </div>#}
-                                {#                                    </div>#}
-                                {#                                </div>#}
-                                <div class="row mt-3">
-                                    <div class="col-md-12">
-                                        <div class="btn-group">
-                                            <form method="POST"
-                                                  action="{% url 'reception_registration:update_proceeded_sessions' session.id %}"
-                                                  style="display: inline;">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="action" value="increment">
-                                                <button type="submit" class="btn btn-success"
-                                                        {% if session.proceeded_sessions >= session.quantity %}disabled{% endif %}>
-                                                    <i class="fas fa-plus"></i> Отметить сеанс как проведенный
-                                                </button>
-                                            </form>
+                                <!-- Individual Sessions Cards -->
+                                <h5 class="mb-3">Индивидуальные сеансы:</h5>
+                                <div class="row">
+                                    {% for individual_session in individual_sessions %}
+                                        <div class="col-md-3 col-sm-4 col-6 mb-3">
+                                            <div class="card session-card h-100 {% if individual_session.status == 'completed' %}border-success{% elif individual_session.status == 'canceled' %}border-danger{% else %}border-secondary{% endif %}">
+                                                <div class="card-header text-center {% if individual_session.status == 'completed' %}bg-success text-white{% elif individual_session.status == 'canceled' %}bg-danger text-white{% else %}bg-light{% endif %}">
+                                                    <h5 class="mb-0">Сеанс #{{ individual_session.session_number }}</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="text-center mb-3">
+                                                        {% if individual_session.status == 'completed' %}
+                                                            <i class="fas fa-check-circle fa-3x text-success"></i>
+                                                            <p class="mt-2 mb-0 font-weight-bold">Проведен</p>
+                                                            <p class="text-muted small">{{ individual_session.completed_at|date:"d.m.Y H:i" }}</p>
+                                                        {% elif individual_session.status == 'canceled' %}
+                                                            <i class="fas fa-times-circle fa-3x text-danger"></i>
+                                                            <p class="mt-2 mb-0 font-weight-bold">Отменен</p>
+                                                        {% else %}
+                                                            <i class="far fa-circle fa-3x text-secondary"></i>
+                                                            <p class="mt-2 mb-0 font-weight-bold">Ожидает</p>
+                                                        {% endif %}
+                                                    </div>
 
-                                            <form method="POST"
-                                                  action="{% url 'reception_registration:update_proceeded_sessions' session.id %}"
-                                                  style="display: inline; margin-left: 10px;">
-                                                {% csrf_token %}
-                                                <input type="hidden" name="action" value="decrement">
-                                                <button type="submit" class="btn btn-warning"
-                                                        {% if session.proceeded_sessions <= 0 %}disabled{% endif %}>
-                                                    <i class="fas fa-minus"></i> Отменить последний сеанс
-                                                </button>
-                                            </form>
-
-                                            <button type="button" class="btn btn-primary" style="margin-left: 10px;"
-                                                    data-toggle="modal" data-target="#modal-set-sessions">
-                                                <i class="fas fa-edit"></i> Установить значение
-                                            </button>
-
-                                            <!-- New Print Check Button -->
-                                            <button type="button" class="btn btn-info" style="margin-left: 10px;"
-                                                    id="print-check-button">
-                                                <i class="fas fa-print"></i> Распечатать чек
-                                            </button>
+                                                    {% if individual_session.notes %}
+                                                        <div class="mt-2">
+                                                            <p class="text-muted mb-1 small">Примечания:</p>
+                                                            <p class="mb-0 small">{{ individual_session.notes }}</p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="card-footer p-0">
+                                                    <div class="btn-group btn-group-sm d-flex">
+                                                        {% if individual_session.status == 'pending' %}
+                                                            <button type="button" class="btn btn-outline-success flex-fill"
+                                                                    data-toggle="modal" data-target="#modal-confirm-session-{{ individual_session.session_number }}">
+                                                                <i class="fas fa-check"></i> Провести
+                                                            </button>
+                                                        {% elif individual_session.status == 'completed' %}
+                                                            <button type="button" class="btn btn-outline-danger flex-fill"
+                                                                    data-toggle="modal" data-target="#modal-cancel-session-{{ individual_session.session_number }}">
+                                                                <i class="fas fa-times"></i> Отменить
+                                                            </button>
+                                                        {% endif %}
+                                                        <button type="button" class="btn btn-outline-primary flex-fill"
+                                                                data-toggle="modal" data-target="#modal-notes-{{ individual_session.session_number }}">
+                                                            <i class="fas fa-edit"></i> Заметки
+                                                        </button>
+                                                        {% if individual_session.status == 'completed' %}
+                                                            <button type="button" class="btn btn-outline-info flex-fill" onclick="printSessionCheck({{ individual_session.session_number }})">
+                                                                <i class="fas fa-print"></i> Чек
+                                                            </button>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+
+                                        <!-- Confirm Session Modal -->
+                                        <div class="modal fade" id="modal-confirm-session-{{ individual_session.session_number }}">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Подтверждение сеанса #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form method="POST" action="{% url 'reception_registration:confirm_individual_session' session.id individual_session.session_number %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <div class="text-center mb-4">
+                                                                <i class="fas fa-calendar-check text-primary" style="font-size: 48px;"></i>
+                                                            </div>
+                                                            <p>Вы подтверждаете проведение сеанса #{{ individual_session.session_number }}?</p>
+                                                            <table class="table table-sm">
+                                                                <tr>
+                                                                    <th>Пациент:</th>
+                                                                    <td>{{ session.patient.full_name }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Услуга:</th>
+                                                                    <td>{{ session.massage.name }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <th>Терапевт:</th>
+                                                                    <td>{{ session.therapist.full_name }}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <div class="modal-footer justify-content-between">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                                            <button type="submit" class="btn btn-success">Подтвердить</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Cancel Session Modal -->
+                                        <div class="modal fade" id="modal-cancel-session-{{ individual_session.session_number }}">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Отмена сеанса #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form method="POST" action="{% url 'reception_registration:cancel_individual_session' session.id individual_session.session_number %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <div class="text-center mb-4">
+                                                                <i class="fas fa-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+                                                            </div>
+                                                            <p>Вы уверены что хотите отменить проведение сеанса #{{ individual_session.session_number }}?</p>
+                                                            <p class="text-danger">Внимание: Можно отменить только последний проведенный сеанс.</p>
+                                                        </div>
+                                                        <div class="modal-footer justify-content-between">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                                            <button type="submit" class="btn btn-danger">Подтвердить отмену</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Notes Modal -->
+                                        <div class="modal fade" id="modal-notes-{{ individual_session.session_number }}">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h4 class="modal-title">Заметки к сеансу #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form method="POST" action="{% url 'reception_registration:update_session_notes' session.id individual_session.session_number %}">
+                                                        {% csrf_token %}
+                                                        <div class="modal-body">
+                                                            <div class="form-group">
+                                                                <label for="notes-{{ individual_session.session_number }}">Примечания:</label>
+                                                                <textarea class="form-control" id="notes-{{ individual_session.session_number }}"
+                                                                          name="notes" rows="4">{{ individual_session.notes|default:'' }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer justify-content-between">
+                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                                                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <div class="col-12">
+                                            <div class="alert alert-info">
+                                                Нет индивидуальных сеансов для этого бронирования
+                                            </div>
+                                        </div>
+                                    {% endfor %}
                                 </div>
+
                             </div>
                         </div>
                     </div>
@@ -265,6 +378,9 @@
                                                value="{{ session.proceeded_sessions|default_if_none:0 }}">
                                         <small class="form-text text-muted">Максимальное
                                             количество: {{ session.quantity }}</small>
+                                        <p class="text-warning mt-3">
+                                            <i class="fas fa-exclamation-triangle"></i> Внимание: Это действие обновит статус всех индивидуальных сеансов!
+                                        </p>
                                     </div>
                                     <input type="hidden" name="action" value="set">
                                 </div>
@@ -281,14 +397,14 @@
                 <!-- SELECT2 EXAMPLE -->
                 <div class="card card-primary">
                     <div class="card-header">
-                        <h3 class="card-title">Бронирование :{{ session.series }}</h3>
+                        <h3 class="card-title">Бронирование: {{ session.series|default:"" }}</h3>
                     </div>
 
                     <div class="row">
                         <div class="col-md-12">
                             <div class="card">
                                 <div class="card-header">
-                                    <label for="arrival-date-picker">Время выездa</label>
+                                    <label>Время выездa</label>
                                     <div class="card-tools">
                                         <div class="input-group input-group-sm" style="width: 150px;">
                                             {{ session.end_date }}
@@ -312,8 +428,6 @@
                                         <th>Терапевт</th>
                                         <th>Кол-во</th>
                                         <th>Обш.Сумма</th>
-                                        <th>Скидка</th>
-                                        <th>Итог. Сумма</th>
                                         <th>Оплаченная сумма</th>
                                         <th>Статус оплаты</th>
                                     </tr>
@@ -331,8 +445,6 @@
                                         <td>{{ session.therapist.full_name }}</td>
                                         <td>{{ session.proceeded_sessions }}/{{ session.quantity }}</td>
                                         <td>{{ session.pre_discount_price|intcomma }} сум</td>
-                                        <td>{{ session.discount }} %</td>
-                                        <td>{{ session.total_price|intcomma }} сум</td>
                                         <td>{{ session.overall_payed_amount|default_if_none:0|intcomma }} сум</td>
                                         <td>
                                             {% if session.overall_payed_amount != 0 and session.is_paid == False %}
@@ -575,7 +687,7 @@
             </div>
         </section>
 
-        <!-- Add this before the end of the content-wrapper div -->
+        <!-- Check Printing Template -->
         <div id="print-check-content" style="display: none;">
             <div style="width: 80mm; font-family: 'Courier New', monospace; font-size: 12px;">
                 <div style="text-align: center; margin-bottom: 10px;">
@@ -587,7 +699,7 @@
                     <table style="width: 100%;">
                         <tr>
                             <td>Чек №: {{ session.id }}</td>
-                            <td style="text-align: right;">Сеанс: {{ session.proceeded_sessions }}</td>
+                            <td style="text-align: right;">Сеанс: <span id="session-number-print"></span></td>
                         </tr>
                         <tr>
                             <td>Пациент: {{ session.patient.full_name }}</td>
@@ -595,7 +707,7 @@
                         </tr>
                     </table>
                 </div>
-                
+
                 <div style="border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5px 0; margin: 10px 0;">
                     <table style="width: 100%;">
                         <!-- Column Headers -->
@@ -624,28 +736,23 @@
             </div>
         </div>
     </div>
-    <!-- /.container-fluid -->
-</div>
-<!-- /.content-wrapper -->
+    <!-- /.content-wrapper -->
 
-
-{% include 'snippets/footer.html' %}
-<!-- Control Sidebar -->
-<aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-</aside>
-<!-- /.control-sidebar -->
+    {% include 'snippets/footer.html' %}
+    <!-- Control Sidebar -->
+    <aside class="control-sidebar control-sidebar-dark">
+        <!-- Control sidebar content goes here -->
+    </aside>
+    <!-- /.control-sidebar -->
 
 </div>
 <!-- ./wrapper -->
 
 <!-- jQuery -->
+<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
 <script>
     $.widget.bridge('uibutton', $.ui.button)
 </script>
-<!-- jQuery -->
-
-<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/plugins/select2/js/select2.full.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/plugins/bootstrap4-duallistbox/jquery.bootstrap-duallistbox.min.js' %}"></script>
@@ -659,16 +766,19 @@
 <script src="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/dist/js/pages/dashboard.js' %}"></script>
-<!-- Page specific script -->
 
+<!-- Individual sessions script -->
 <script>
     $(document).ready(function() {
-        // Print check button click handler
-        $("#print-check-button").click(function() {
+        // Function to print a check for a specific session
+        window.printSessionCheck = function(sessionNumber) {
             // Set current date and time
             var now = new Date();
             var dateString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
             $("#check-date").text(dateString);
+
+            // Update the session number in the check content
+            $("#session-number-print").text(sessionNumber);
 
             // Open print dialog for the check content
             var printContents = document.getElementById("print-check-content").innerHTML;
@@ -686,6 +796,51 @@
                 body {
                     width: 80mm;
                     padding: 5mm;
+                }
+                td {
+                    padding: 2px 0;
+                }
+            `;
+            document.head.appendChild(style);
+
+            window.print();
+
+            // Restore original content after printing
+            document.body.innerHTML = originalContents;
+
+            // Refresh the page to restore all JS functionality
+            location.reload();
+        };
+
+        // Print all sessions button
+        $("#print-all-button").click(function() {
+            // Set current date and time
+            var now = new Date();
+            var dateString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+            $("#check-date").text(dateString);
+
+            // Update to show all sessions
+            $("#session-number-print").text("Все");
+
+            // Open print dialog for the check content
+            var printContents = document.getElementById("print-check-content").innerHTML;
+            var originalContents = document.body.innerHTML;
+
+            document.body.innerHTML = printContents;
+
+            // Apply print-specific CSS
+            var style = document.createElement('style');
+            style.innerHTML = `
+                @page {
+                    size: 80mm auto;
+                    margin: 0mm;
+                }
+                body {
+                    width: 80mm;
+                    padding: 5mm;
+                }
+                td {
+                    padding: 2px 0;
                 }
             `;
             document.head.appendChild(style);

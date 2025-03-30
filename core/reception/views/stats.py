@@ -7,7 +7,7 @@ import csv
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-from core.models import SessionModel, Account, TherapistModel, PaymentModel
+from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel
 
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -44,7 +44,7 @@ def therapist_statistics(request):
 
     for therapist in therapists:
         # Get sessions for this therapist in the date range
-        sessions = SessionModel.objects.filter(
+        sessions = SessionBookingModel.objects.filter(
             therapist=therapist,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,
@@ -135,7 +135,7 @@ def export_therapist_statistics(request):
 
     for therapist in therapists:
         # Get sessions for this therapist in the date range
-        sessions = SessionModel.objects.filter(
+        sessions = SessionBookingModel.objects.filter(
             therapist=therapist,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,
@@ -318,7 +318,7 @@ def export_therapist_statistics_word(request):
 
     for therapist in therapists:
         # Get sessions for this therapist in the date range
-        sessions = SessionModel.objects.filter(
+        sessions = SessionBookingModel.objects.filter(
             therapist=therapist,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,

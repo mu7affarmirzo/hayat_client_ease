@@ -1,6 +1,6 @@
 from django import forms
 
-from core.models import PatientModel, SessionModel
+from core.models import PatientModel, SessionBookingModel
 
 
 class SessionForm(forms.ModelForm):
@@ -10,7 +10,7 @@ class SessionForm(forms.ModelForm):
     # )
 
     class Meta:
-        model = SessionModel
+        model = SessionBookingModel
         fields = [
             # 'start_date',
             'patient',
