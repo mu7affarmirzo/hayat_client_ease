@@ -1,5 +1,6 @@
 from django.urls import path
 
+from core.reception.views.auth import close_session
 from core.reception.views.registration import (
     register_booking_view, add_new_patient, load_services,
     session_detailed_view, singular_payment_view, whole_payment_view, update_proceeded_sessions,
@@ -11,6 +12,8 @@ from core.reception.views import stats
 app_name = 'reception_registration'
 
 urlpatterns = [
+    path('close-session/<int:session_id>/', close_session, name='close-session'),
+
     path('register-session/', register_booking_view, name='register-booking'),
 
     path('session-detailed/<int:pk>', session_detailed_view, name='session-detailed'),

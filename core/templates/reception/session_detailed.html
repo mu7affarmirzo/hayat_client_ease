@@ -227,10 +227,10 @@
                                                                 <i class="fas fa-check"></i> Провести
                                                             </button>
                                                         {% elif individual_session.status == 'completed' %}
-                                                            <button type="button" class="btn btn-outline-danger flex-fill"
-                                                                    data-toggle="modal" data-target="#modal-cancel-session-{{ individual_session.session_number }}">
-                                                                <i class="fas fa-times"></i> Отменить
-                                                            </button>
+{#                                                            <button type="button" class="btn btn-outline-danger flex-fill"#}
+{#                                                                    data-toggle="modal" data-target="#modal-cancel-session-{{ individual_session.session_number }}">#}
+{#                                                                <i class="fas fa-times"></i> Отменить#}
+{#                                                            </button>#}
                                                         {% endif %}
                                                         <button type="button" class="btn btn-outline-primary flex-fill"
                                                                 data-toggle="modal" data-target="#modal-notes-{{ individual_session.session_number }}">

@@ -96,6 +96,13 @@ class IndividualSessionModel(models.Model):
 
 
 class SessionBookingModel(models.Model):
+    STATUS_CHOICES = (
+        ('active', _('Активный')),
+        ('completed', _('Завершен')),
+        ('cancelled', _('Отменен')),
+        ('closed', _('Закрыт')),
+    )
+
     patient = models.ForeignKey(PatientModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
     massage = models.ForeignKey(ServiceModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
     therapist = models.ForeignKey(TherapistModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
@@ -113,6 +120,9 @@ class SessionBookingModel(models.Model):
     is_paid = models.BooleanField(default=False)
 
     is_reported = models.BooleanField(default=False)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES,
+                              default='active', verbose_name=_('Статус'))
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True, related_name="created_sessions")

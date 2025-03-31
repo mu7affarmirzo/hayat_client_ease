@@ -1,5 +1,6 @@
 from http.client import HTTPResponse
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, logout, login
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q
@@ -56,10 +57,10 @@ def logout_view(request):
 
 # @role_required(role='sanatorium', login_url='sanatorium_auth:logout')
 def main_screen_view(request):
-
     # Get query parameters
     query = request.GET.get('table_search', '')
     sort_param = request.GET.get('sort', '')
+    status_filter = request.GET.get('status', '')
 
     # Start with all sessions or filter by your business logic
     sessions = SessionBookingModel.objects.all()
@@ -72,6 +73,10 @@ def main_screen_view(request):
             Q(patient__mobile_phone_number__icontains=query) |
             Q(massage__name__icontains=query)
         )
+
+    # Apply status filter if provided
+    if status_filter:
+        sessions = sessions.filter(status=status_filter)
 
     # Apply sorting if provided
     if sort_param:
@@ -87,9 +92,29 @@ def main_screen_view(request):
         'sessions': sessions,
         'query': query,
         'sort': sort_param,
+        'status_filter': status_filter,
+        'status_choices': SessionBookingModel.STATUS_CHOICES,
     }
 
     return render(request, 'reception/main_screen.html', context)
+
+
+def close_session(request, session_id):
+    """View to handle manual session closing"""
+    if request.method == 'POST':
+        try:
+            session = SessionBookingModel.objects.get(id=session_id)
+            if session.status == 'active':
+                session.status = 'closed'
+                session.save()
+                messages.success(request, f"Сеанс {session.id} для {session.patient.full_name} был успешно закрыт.")
+            else:
+                messages.warning(request, "Этот сеанс уже нельзя закрыть.")
+        except SessionBookingModel.DoesNotExist:
+            messages.error(request, "Сеанс не найден.")
+
+    # Redirect back to the main screen
+    return redirect('reception_auth:main_screen')
 
 
 def not_paid_list_view(request):
