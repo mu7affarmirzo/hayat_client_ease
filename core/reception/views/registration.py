@@ -46,24 +46,6 @@ def register_booking_view(request):
     )
 
 
-# @login_required
-# def session-detailed_view(request, pk):
-#     session = get_object_or_404(SessionBookingModel, pk=pk)
-#     payments = session.payments.all()
-#     methods = PaymentModel.method.field.choices
-#
-#     # Calculate remaining sessions
-#     remaining_sessions = session.quantity - session.proceeded_sessions
-#
-#     context = {
-#         'session': session,
-#         'payments': payments,
-#         'methods': methods,
-#         'remaining_sessions': remaining_sessions
-#     }
-#     return render(request, 'reception/session-detailed.html', context)
-
-
 @login_required
 def session_detailed_view(request, pk):
     """View for detailed session information with individual sessions"""
@@ -74,11 +56,14 @@ def session_detailed_view(request, pk):
     # Get individual sessions
     individual_sessions = booking.individual_sessions.all().order_by('session_number')
 
+    is_editable = booking.status in ['active']
+
     context = {
         'session': booking,  # Keep the same variable name for backward compatibility
         'individual_sessions': individual_sessions,
         'payments': payments,
         'methods': methods,
+        'is_editable': is_editable,
     }
     return render(request, 'reception/session_detailed.html', context)
 

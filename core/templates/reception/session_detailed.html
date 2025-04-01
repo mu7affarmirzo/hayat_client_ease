@@ -47,7 +47,7 @@
 
         .session-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .clickable {
@@ -170,7 +170,8 @@
                                 <div class="row mt-4 mb-4">
                                     <div class="col-md-6">
                                         <div class="info-box">
-                                            <span class="info-box-icon bg-primary"><i class="fas fa-check-circle"></i></span>
+                                            <span class="info-box-icon bg-primary"><i
+                                                    class="fas fa-check-circle"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Проведено сеансов</span>
                                                 <span class="info-box-number">{{ session.proceeded_sessions|default_if_none:0 }} / {{ session.quantity }}</span>
@@ -179,7 +180,8 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="info-box">
-                                            <span class="info-box-icon bg-olive"><i class="fas fa-calendar-alt"></i></span>
+                                            <span class="info-box-icon bg-olive"><i
+                                                    class="fas fa-calendar-alt"></i></span>
                                             <div class="info-box-content">
                                                 <span class="info-box-text">Осталось сеансов</span>
                                                 <span class="info-box-number">{{ session.quantity|default:0|sub:session.proceeded_sessions|default_if_none:session.quantity }}</span>
@@ -221,23 +223,28 @@
                                                 </div>
                                                 <div class="card-footer p-0">
                                                     <div class="btn-group btn-group-sm d-flex">
-                                                        {% if individual_session.status == 'pending' %}
-                                                            <button type="button" class="btn btn-outline-success flex-fill"
-                                                                    data-toggle="modal" data-target="#modal-confirm-session-{{ individual_session.session_number }}">
+                                                        {% if individual_session.status == 'pending' and is_editable %}
+                                                            <p>{{ is_editable }}</p>
+                                                            <button type="button"
+                                                                    class="btn btn-outline-success flex-fill"
+                                                                    data-toggle="modal"
+                                                                    data-target="#modal-confirm-session-{{ individual_session.session_number }}">
                                                                 <i class="fas fa-check"></i> Провести
                                                             </button>
                                                         {% elif individual_session.status == 'completed' %}
-{#                                                            <button type="button" class="btn btn-outline-danger flex-fill"#}
-{#                                                                    data-toggle="modal" data-target="#modal-cancel-session-{{ individual_session.session_number }}">#}
-{#                                                                <i class="fas fa-times"></i> Отменить#}
-{#                                                            </button>#}
+                                                            {#                                                            <button type="button" class="btn btn-outline-danger flex-fill"#}
+                                                            {#                                                                    data-toggle="modal" data-target="#modal-cancel-session-{{ individual_session.session_number }}">#}
+                                                            {#                                                                <i class="fas fa-times"></i> Отменить#}
+                                                            {#                                                            </button>#}
                                                         {% endif %}
                                                         <button type="button" class="btn btn-outline-primary flex-fill"
-                                                                data-toggle="modal" data-target="#modal-notes-{{ individual_session.session_number }}">
+                                                                data-toggle="modal"
+                                                                data-target="#modal-notes-{{ individual_session.session_number }}">
                                                             <i class="fas fa-edit"></i> Заметки
                                                         </button>
                                                         {% if individual_session.status == 'completed' %}
-                                                            <button type="button" class="btn btn-outline-info flex-fill" onclick="printSessionCheck({{ individual_session.session_number }})">
+                                                            <button type="button" class="btn btn-outline-info flex-fill"
+                                                                    onclick="printSessionCheck({{ individual_session.session_number }})">
                                                                 <i class="fas fa-print"></i> Чек
                                                             </button>
                                                         {% endif %}
@@ -247,22 +254,28 @@
                                         </div>
 
                                         <!-- Confirm Session Modal -->
-                                        <div class="modal fade" id="modal-confirm-session-{{ individual_session.session_number }}">
+                                        <div class="modal fade"
+                                             id="modal-confirm-session-{{ individual_session.session_number }}">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h4 class="modal-title">Подтверждение сеанса #{{ individual_session.session_number }}</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <h4 class="modal-title">Подтверждение сеанса
+                                                            #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
-                                                    <form method="POST" action="{% url 'reception_registration:confirm_individual_session' session.id individual_session.session_number %}">
+                                                    <form method="POST"
+                                                          action="{% url 'reception_registration:confirm_individual_session' session.id individual_session.session_number %}">
                                                         {% csrf_token %}
                                                         <div class="modal-body">
                                                             <div class="text-center mb-4">
-                                                                <i class="fas fa-calendar-check text-primary" style="font-size: 48px;"></i>
+                                                                <i class="fas fa-calendar-check text-primary"
+                                                                   style="font-size: 48px;"></i>
                                                             </div>
-                                                            <p>Вы подтверждаете проведение сеанса #{{ individual_session.session_number }}?</p>
+                                                            <p>Вы подтверждаете проведение сеанса
+                                                                #{{ individual_session.session_number }}?</p>
                                                             <table class="table table-sm">
                                                                 <tr>
                                                                     <th>Пациент:</th>
@@ -279,8 +292,11 @@
                                                             </table>
                                                         </div>
                                                         <div class="modal-footer justify-content-between">
-                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                                                            <button type="submit" class="btn btn-success">Подтвердить</button>
+                                                            <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal">Отмена
+                                                            </button>
+                                                            <button type="submit" class="btn btn-success">Подтвердить
+                                                            </button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -288,27 +304,38 @@
                                         </div>
 
                                         <!-- Cancel Session Modal -->
-                                        <div class="modal fade" id="modal-cancel-session-{{ individual_session.session_number }}">
+                                        <div class="modal fade"
+                                             id="modal-cancel-session-{{ individual_session.session_number }}">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h4 class="modal-title">Отмена сеанса #{{ individual_session.session_number }}</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <h4 class="modal-title">Отмена сеанса
+                                                            #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
-                                                    <form method="POST" action="{% url 'reception_registration:cancel_individual_session' session.id individual_session.session_number %}">
+                                                    <form method="POST"
+                                                          action="{% url 'reception_registration:cancel_individual_session' session.id individual_session.session_number %}">
                                                         {% csrf_token %}
                                                         <div class="modal-body">
                                                             <div class="text-center mb-4">
-                                                                <i class="fas fa-exclamation-triangle text-warning" style="font-size: 48px;"></i>
+                                                                <i class="fas fa-exclamation-triangle text-warning"
+                                                                   style="font-size: 48px;"></i>
                                                             </div>
-                                                            <p>Вы уверены что хотите отменить проведение сеанса #{{ individual_session.session_number }}?</p>
-                                                            <p class="text-danger">Внимание: Можно отменить только последний проведенный сеанс.</p>
+                                                            <p>Вы уверены что хотите отменить проведение сеанса
+                                                                #{{ individual_session.session_number }}?</p>
+                                                            <p class="text-danger">Внимание: Можно отменить только
+                                                                последний проведенный сеанс.</p>
                                                         </div>
                                                         <div class="modal-footer justify-content-between">
-                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                                                            <button type="submit" class="btn btn-danger">Подтвердить отмену</button>
+                                                            <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal">Отмена
+                                                            </button>
+                                                            <button type="submit" class="btn btn-danger">Подтвердить
+                                                                отмену
+                                                            </button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -316,27 +343,36 @@
                                         </div>
 
                                         <!-- Notes Modal -->
-                                        <div class="modal fade" id="modal-notes-{{ individual_session.session_number }}">
+                                        <div class="modal fade"
+                                             id="modal-notes-{{ individual_session.session_number }}">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h4 class="modal-title">Заметки к сеансу #{{ individual_session.session_number }}</h4>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <h4 class="modal-title">Заметки к сеансу
+                                                            #{{ individual_session.session_number }}</h4>
+                                                        <button type="button" class="close" data-dismiss="modal"
+                                                                aria-label="Close">
                                                             <span aria-hidden="true">&times;</span>
                                                         </button>
                                                     </div>
-                                                    <form method="POST" action="{% url 'reception_registration:update_session_notes' session.id individual_session.session_number %}">
+                                                    <form method="POST"
+                                                          action="{% url 'reception_registration:update_session_notes' session.id individual_session.session_number %}">
                                                         {% csrf_token %}
                                                         <div class="modal-body">
                                                             <div class="form-group">
                                                                 <label for="notes-{{ individual_session.session_number }}">Примечания:</label>
-                                                                <textarea class="form-control" id="notes-{{ individual_session.session_number }}"
-                                                                          name="notes" rows="4">{{ individual_session.notes|default:'' }}</textarea>
+                                                                <textarea class="form-control"
+                                                                          id="notes-{{ individual_session.session_number }}"
+                                                                          name="notes"
+                                                                          rows="4">{{ individual_session.notes|default:'' }}</textarea>
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer justify-content-between">
-                                                            <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                                                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                                                            <button type="button" class="btn btn-default"
+                                                                    data-dismiss="modal">Отмена
+                                                            </button>
+                                                            <button type="submit" class="btn btn-primary">Сохранить
+                                                            </button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -379,7 +415,8 @@
                                         <small class="form-text text-muted">Максимальное
                                             количество: {{ session.quantity }}</small>
                                         <p class="text-warning mt-3">
-                                            <i class="fas fa-exclamation-triangle"></i> Внимание: Это действие обновит статус всех индивидуальных сеансов!
+                                            <i class="fas fa-exclamation-triangle"></i> Внимание: Это действие обновит
+                                            статус всех индивидуальных сеансов!
                                         </p>
                                     </div>
                                     <input type="hidden" name="action" value="set">
@@ -555,134 +592,136 @@
                     <!-- /.col -->
                 </div>
 
-                <div class="invoice p-3 mb-3">
-                    <div class="row">
-                        <!-- accepted payments column -->
-
-                        <!-- /.col -->
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 150px;">
-                                    <a href="#" data-toggle="modal" data-target="#modal-payment"
-                                       class="btn btn-success float-left" style="margin-right: 5px;">
-                                        <i class="fas fa-coins"></i> Закрыть счет
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="modal fade" id="modal-payment">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Закрыть счет</h4>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-
-                                        <form id="payment_form" method="POST"
-                                              action="{% url 'reception_registration:whole_payment' session.id %}">
-                                            {% csrf_token %}
-                                            <div class="card-body">
-                                                <div class="form-group">
-                                                    <label for="example_fname">Тип оплаты</label>
-                                                    <select class="form-control select2"
-                                                            style="width: 100%;" name="method">
-
-                                                        {% for type in methods %}
-                                                            <option value="{{ type.0 }}">{{ type.0 }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-
-                                                <div class="form-group disabled">
-                                                    <label for="example_last_name">К оплате</label>
-                                                    <input disabled name="amount" type="number" class="form-control"
-                                                           id="amount"
-                                                           placeholder="{{ session.remaining_payed_amount|intcomma }} сум">
-                                                </div>
-
-                                            </div>
-                                            <!-- /.card-body -->
-
-                                            <div class="modal-footer justify-content-between">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Закрыть
-                                                </button>
-                                                <button name="payment_form" type="submit" class="btn btn-primary">
-                                                    Сохранить
-                                                </button>
-                                            </div>
-                                        </form>
-
+                {% if is_editable %}
+                    <div class="invoice p-3 mb-3">
+                        <div class="row">
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-tools">
+                                    <div class="input-group input-group-sm" style="width: 150px;">
+                                        <a href="#" data-toggle="modal" data-target="#modal-payment"
+                                           class="btn btn-success float-left" style="margin-right: 5px;">
+                                            <i class="fas fa-coins"></i> Закрыть счет
+                                        </a>
                                     </div>
-                                    <!-- /.modal-content -->
                                 </div>
-                                <!-- /.modal-dialog -->
-                            </div>
+                                <div class="modal fade" id="modal-payment">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title">Закрыть счет</h4>
 
-                            <div class="card-tools">
-                                <div class="input-group input-group-sm" style="width: 210px;">
-                                    <a href="#" data-toggle="modal" data-target="#modal-deposit"
-                                       class="btn btn-primary float-right" style="margin-right: 5px;">
-                                        <i class="fas fa-coins"></i> Пополнить депозить
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="modal fade" id="modal-deposit">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Пополнить депозить</h4>
-                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+
+                                            <form id="payment_form" method="POST"
+                                                  action="{% url 'reception_registration:whole_payment' session.id %}">
+                                                {% csrf_token %}
+                                                <div class="card-body">
+                                                    <div class="form-group">
+                                                        <label for="example_fname">Тип оплаты</label>
+                                                        <select class="form-control select2"
+                                                                style="width: 100%;" name="method">
+
+                                                            {% for type in methods %}
+                                                                <option value="{{ type.0 }}">{{ type.0 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group disabled">
+                                                        <label for="example_last_name">К оплате</label>
+                                                        <input disabled name="amount" type="number" class="form-control"
+                                                               id="amount"
+                                                               placeholder="{{ session.remaining_payed_amount|intcomma }} сум">
+                                                    </div>
+
+                                                </div>
+                                                <!-- /.card-body -->
+
+                                                <div class="modal-footer justify-content-between">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                        Закрыть
+                                                    </button>
+                                                    <button name="payment_form" type="submit" class="btn btn-primary">
+                                                        Сохранить
+                                                    </button>
+                                                </div>
+                                            </form>
+
                                         </div>
-
-                                        <form id="deposit_form" method="POST"
-                                              action="{% url 'reception_registration:singular_payment' session.id %}">
-                                            {% csrf_token %}
-                                            <div class="card-body">
-                                                <div class="form-group">
-                                                    <label for="example_fname">Тип оплаты</label>
-                                                    <select class="form-control select2"
-                                                            style="width: 100%;" name="method">
-
-                                                        {% for type in methods %}
-                                                            <option value="{{ type.0 }}">{{ type.0 }}</option>
-                                                        {% endfor %}
-                                                    </select>
-                                                </div>
-
-                                                <div class="form-group disabled">
-                                                    <label for="example_last_name">К оплате</label>
-                                                    <input name="amount" type="number" class="form-control"
-                                                           id="amount"
-                                                           placeholder="{{ total_sum|intcomma }}">
-                                                </div>
-
-                                            </div>
-                                            <!-- /.card-body -->
-
-                                            <div class="modal-footer justify-content-between">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal">
-                                                    Закрыть
-                                                </button>
-                                                <button name="deposit_form" type="submit" class="btn btn-primary">
-                                                    Сохранить
-                                                </button>
-                                            </div>
-                                        </form>
-
+                                        <!-- /.modal-content -->
                                     </div>
-                                    <!-- /.modal-content -->
+                                    <!-- /.modal-dialog -->
                                 </div>
-                                <!-- /.modal-dialog -->
+
+                                <div class="card-tools">
+                                    <div class="input-group input-group-sm" style="width: 210px;">
+                                        <a href="#" data-toggle="modal" data-target="#modal-deposit"
+                                           class="btn btn-primary float-right" style="margin-right: 5px;">
+                                            <i class="fas fa-coins"></i> Пополнить депозить
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="modal fade" id="modal-deposit">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title">Пополнить депозить</h4>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+
+                                            <form id="deposit_form" method="POST"
+                                                  action="{% url 'reception_registration:singular_payment' session.id %}">
+                                                {% csrf_token %}
+                                                <div class="card-body">
+                                                    <div class="form-group">
+                                                        <label for="example_fname">Тип оплаты</label>
+                                                        <select class="form-control select2"
+                                                                style="width: 100%;" name="method">
+
+                                                            {% for type in methods %}
+                                                                <option value="{{ type.0 }}">{{ type.0 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group disabled">
+                                                        <label for="example_last_name">К оплате</label>
+                                                        <input name="amount" type="number" class="form-control"
+                                                               id="amount"
+                                                               placeholder="{{ total_sum|intcomma }}">
+                                                    </div>
+
+                                                </div>
+                                                <!-- /.card-body -->
+
+                                                <div class="modal-footer justify-content-between">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                        Закрыть
+                                                    </button>
+                                                    <button name="deposit_form" type="submit" class="btn btn-primary">
+                                                        Сохранить
+                                                    </button>
+                                                </div>
+                                            </form>
+
+                                        </div>
+                                        <!-- /.modal-content -->
+                                    </div>
+                                    <!-- /.modal-dialog -->
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
 
             </div>
         </section>
@@ -724,7 +763,9 @@
                         <tr>
                             <td style="width: 60%; padding-top: 3px;">{{ session.massage.name }}</td>
                             <td style="width: 10%; text-align: center; padding-top: 3px;">1</td>
-                            <td style="width: 30%; text-align: right; padding-top: 3px;">{{ session.massage.price|intcomma }} сум</td>
+                            <td style="width: 30%; text-align: right; padding-top: 3px;">{{ session.massage.price|intcomma }}
+                                сум
+                            </td>
                         </tr>
                     </table>
                 </div>
@@ -769,9 +810,9 @@
 
 <!-- Individual sessions script -->
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Function to print a check for a specific session
-        window.printSessionCheck = function(sessionNumber) {
+        window.printSessionCheck = function (sessionNumber) {
             // Set current date and time
             var now = new Date();
             var dateString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
@@ -813,7 +854,7 @@
         };
 
         // Print all sessions button
-        $("#print-all-button").click(function() {
+        $("#print-all-button").click(function () {
             // Set current date and time
             var now = new Date();
             var dateString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
