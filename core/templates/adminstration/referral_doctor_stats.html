@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hayat Medical Center - Статистика терапевтов</title>
+    <title>Hayat Medical Center - Статистика направляющих врачей</title>
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet"
@@ -30,20 +30,19 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Статистика терапевтов</h1>
+                        <h1 class="m-0">Статистика направляющих врачей</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a>
                             </li>
-                            <li class="breadcrumb-item active">Статистика терапевтов</li>
+                            <li class="breadcrumb-item active">Статистика направляющих врачей</li>
                         </ol>
                     </div>
                 </div>
             </div>
         </div>
         <!-- /.content-header -->
-
 
         <!-- Main content -->
         <section class="content">
@@ -57,7 +56,7 @@
                     {% endfor %}
                 {% endif %}
 
-                <!-- Add this after the summary cards in the therapist_statistics.html template -->
+                <!-- Add this after the summary cards in the referral_doctor_statistics.html template -->
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card card-primary">
@@ -91,7 +90,7 @@
                                                         <td class="text-right">{{ owner1_share|intcomma }} сум</td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Выплаты терапевтам</th>
+                                                        <th>Выплаты направляющим врачам</th>
                                                         <td class="text-right">{{ total_payout|intcomma }} сум</td>
                                                     </tr>
                                                     <tr class="bg-light">
@@ -136,7 +135,7 @@
                                     <div class="col-md-12">
                                         <div class="callout callout-info">
                                             <h5><i class="fas fa-info"></i> Примечание:</h5>
-                                            <p>Общая сумма делится поровну между двумя партнерами (50/50). Терапевты
+                                            <p>Общая сумма делится поровну между двумя партнерами (50/50). Направляющие врачи
                                                 получают свой процент от доли первого партнера, в соответствии с их
                                                 ставкой. Расчет производится только на основе фактически оплаченных
                                                 сумм.</p>
@@ -155,7 +154,7 @@
                     </div>
                     <!-- /.card-header -->
                     <div class="card-body">
-                        <form method="GET" action="{% url 'administration:therapist_statistics' %}">
+                        <form method="GET" action="{% url 'administration:referral_doctor_statistics' %}">
                             <div class="row">
                                 <div class="col-md-5">
                                     <div class="form-group">
@@ -176,7 +175,7 @@
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-search"></i> Поиск
                                         </button>
-                                        <a href="{% url 'administration:therapist_statistics' %}"
+                                        <a href="{% url 'administration:referral_doctor_statistics' %}"
                                            class="btn btn-default">
                                             <i class="fas fa-sync"></i> Сбросить
                                         </a>
@@ -189,7 +188,7 @@
                 </div>
                 <!-- /.card -->
 
-                <!-- Therapist Statistics Table -->
+                <!-- Referral Doctor Statistics Table -->
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">Результаты за период: {{ start_date }} - {{ end_date }}</h3>
@@ -212,7 +211,7 @@
                             <thead>
                             <tr>
                                 <th style="width: 10px">#</th>
-                                <th>Терапевт</th>
+                                <th>Врач</th>
                                 <th>Сумма (сум)</th>
                                 <th>Кол-во сеансов</th>
                                 <th>Ставка (%)</th>
@@ -220,14 +219,14 @@
                             </tr>
                             </thead>
                             <tbody>
-                            {% for therapist in therapists %}
+                            {% for doctor in doctors %}
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
-                                    <td>{{ therapist.full_name }}</td>
-                                    <td>{{ therapist.after_share_amount|intcomma }} сум</td>
-                                    <td>{{ therapist.session_count }}</td>
-                                    <td>{{ therapist.rate }}%</td>
-                                    <td>{{ therapist.payout_amount|intcomma }} сум</td>
+                                    <td>{{ doctor.full_name }}</td>
+                                    <td>{{ doctor.after_share_amount|intcomma }} сум</td>
+                                    <td>{{ doctor.session_count }}</td>
+                                    <td>{{ doctor.rate }}%</td>
+                                    <td>{{ doctor.payout_amount|intcomma }} сум</td>
                                 </tr>
                             {% empty %}
                                 <tr>
@@ -238,9 +237,9 @@
                             <tfoot>
                             <tr class="bg-light font-weight-bold">
                                 <td colspan="2" class="text-right">Итого:</td>
-                                <td>{{ owner2_share|intcomma }} сум</td>
-                                <td>-</td>
+                                <td>{{ owner1_share|intcomma }} сум</td>
                                 <td>{{ total_sessions }}</td>
+                                <td>-</td>
                                 <td>{{ total_payout|intcomma }} сум</td>
                             </tr>
                             </tfoot>
@@ -295,7 +294,7 @@
                         <!-- small box -->
                         <div class="small-box bg-danger">
                             <div class="inner">
-                                <h3>{{ profit|intcomma }}</h3>
+                                <h3>{{ total_amount|subtract:total_payout|intcomma }}</h3>
                                 <p>Выручка клиники (сум)</p>
                             </div>
                             <div class="icon">
@@ -328,23 +327,23 @@
 <!-- Page specific script -->
 <script>
     $(function () {
-    // Date range picker with time picker
-    $('#date-range').daterangepicker({
-        locale: {
-            format: 'DD/MM/YYYY'
-        }
-    });
+        // Date range picker with time picker
+        $('#date-range').daterangepicker({
+            locale: {
+                format: 'DD/MM/YYYY'
+            }
+        });
 
-    // Export to Excel
-    $('#export-excel').click(function () {
-        window.location.href = "{% url 'administration:export_therapist_statistics' %}?date_range=" + $('#date-range').val();
-    });
+        // Export to Excel
+        $('#export-excel').click(function () {
+            window.location.href = "{% url 'administration:export_referral_doctor_statistics' %}?date_range=" + $('#date-range').val();
+        });
 
-    // Export to Word
-    $('#export-word').click(function () {
-        window.location.href = "{% url 'administration:export_therapist_statistics_word' %}?date_range=" + $('#date-range').val();
+        // Export to Word
+        $('#export-word').click(function () {
+            window.location.href = "{% url 'administration:export_referral_doctor_statistics_word' %}?date_range=" + $('#date-range').val();
+        });
     });
-});
 </script>
 </body>
 </html>

@@ -151,7 +151,20 @@
                                             </a>
                                         </th>
                                         <th>Услуга</th>
-                                        <th>Массажист</th>
+                                        <th>
+{#                                            Массажист#}
+
+                                            <a href="?{% if query %}table_search={{ query }}&{% endif %}sort={% if sort == 'therapist' %}-therapist{% else %}therapist{% endif %}">
+                                                Массажист
+                                                {% if sort == 'therapist' %}
+                                                    <i class="fas fa-sort-up"></i>
+                                                {% elif sort == '-therapist' %}
+                                                    <i class="fas fa-sort-down"></i>
+                                                {% else %}
+                                                    <i class="fas fa-sort text-muted"></i>
+                                                {% endif %}
+                                            </a>
+                                        </th>
                                         <th>Курс</th>
                                         <th>Обш.Сумма</th>
                                         <th>Итог. Сумма</th>

@@ -7,8 +7,6 @@ from core.reception.views.registration import (
     confirm_individual_session, cancel_individual_session, update_session_notes,
 )
 
-from core.reception.views import stats
-
 app_name = 'reception_registration'
 
 urlpatterns = [
@@ -33,7 +31,4 @@ urlpatterns = [
     path('make-singular-payment/<int:pk>', singular_payment_view, name='singular_payment'),
     path('make-whole-payment/<int:pk>', whole_payment_view, name='whole_payment'),
 
-    # Therapist statistics
-    path('therapist-statistics/', stats.therapist_statistics, name='therapist_statistics'),
-    path('export-therapist-statistics/', stats.export_therapist_statistics, name='export_therapist_statistics'),
 ]

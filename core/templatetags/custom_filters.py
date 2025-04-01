@@ -87,3 +87,15 @@ def format_phone(value):
 
     # If we can't determine the format, return the original
     return value
+
+
+@register.filter
+def subtract(value, arg):
+    """Subtracts the arg from the value."""
+    try:
+        return value - arg
+    except (ValueError, TypeError):
+        try:
+            return int(value) - int(arg)
+        except (ValueError, TypeError):
+            return 0

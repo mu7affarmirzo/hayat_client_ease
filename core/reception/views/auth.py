@@ -71,6 +71,7 @@ def main_screen_view(request):
             Q(patient__f_name__icontains=query) |
             Q(patient__created_at__icontains=query) |
             Q(patient__mobile_phone_number__icontains=query) |
+            Q(patient__therapist__icontains=query) |
             Q(massage__name__icontains=query)
         )
 

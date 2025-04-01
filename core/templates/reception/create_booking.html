@@ -551,7 +551,6 @@
     // 1. Grab references to DOM elements
     const serviceSelect = document.getElementById('id_service');
     const quantityInput = document.getElementById('id_quantity');
-    const discountInput = document.getElementById('id_discount');
     const totalPriceElem = document.getElementById('id_total_price');
 
     function formatWithCommas(value) {
@@ -564,10 +563,8 @@
       const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
       const price = parseFloat(selectedOption.getAttribute('data-price')) || 0;
       const quantity = parseFloat(quantityInput.value) || 1;
-      const discount = parseFloat(discountInput.value) || 0;
 
-      const discountedPrice = price - (price * (discount / 100));
-      const total = discountedPrice * quantity;
+      const total = price * quantity;
 
       totalPriceElem.textContent = total.toFixed(2);
         // Format the output with commas

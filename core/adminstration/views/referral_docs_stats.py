@@ -7,7 +7,7 @@ import csv
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel
+from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel, ReferralDoctorModel
 
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -16,10 +16,10 @@ from docx.enum.table import WD_ALIGN_VERTICAL
 
 
 @login_required
-def therapist_statistics(request):
+def referral_doctor_statistics(request):
     """
-    View to display therapist statistics for a specified date range
-    with new profit distribution logic based on actual paid amounts
+    View to display referral doctor statistics for a specified date range
+    with profit distribution logic based on actual paid amounts
     """
     # Default date range (last 30 days)
     end_date = datetime.now().date()
@@ -33,19 +33,19 @@ def therapist_statistics(request):
         start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
         end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
 
-    # Get all therapists
-    therapists = TherapistModel.objects.all()
+    # Get all referral doctors
+    referral_doctors = ReferralDoctorModel.objects.all()
 
-    # Process statistics for each therapist
+    # Process statistics for each referral doctor
     stats = []
     total_sessions = 0
     total_amount = 0
     total_payout = 0
 
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
+    for doctor in referral_doctors:
+        # Get sessions for this referral doctor in the date range
         sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
+            referral_doctor=doctor,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,
         )
@@ -58,7 +58,8 @@ def therapist_statistics(request):
 
         # Calculate statistics
         session_count = sessions.aggregate(total=Sum('proceeded_sessions'))['total'] or 0
-        # Skip therapists with no sessions or no payments
+
+        # Skip doctors with no sessions or no payments
         if paid_amount == 0:
             continue
 
@@ -66,18 +67,18 @@ def therapist_statistics(request):
         total_sessions += session_count
         total_amount += paid_amount
 
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
+        # Calculate payout based on referral doctor rate
+        rate = doctor.rate if hasattr(doctor, 'rate') else 0
 
-        # New calculation: therapist gets their rate % from HALF of the paid amount
+        # New calculation: referral doctor gets their rate % from HALF of the paid amount
         owner_share = paid_amount // 2
         payout = owner_share * (rate / 100)
         total_payout += payout
 
         # Add to stats list
         stats.append({
-            'full_name': therapist.full_name,
-            'total_amount': total_amount,
+            'full_name': doctor.full_name,
+            'total_amount': paid_amount,
             'rate': rate,
             'session_count': session_count,
             'after_share_amount': owner_share,
@@ -88,11 +89,11 @@ def therapist_statistics(request):
     owner1_share = total_amount // 2
     owner2_share = total_amount // 2
 
-    # Owner 1 pays the therapists
+    # Owner 1 pays the referral doctors
     owner1_final = int(owner1_share) - total_payout
 
     context = {
-        'therapists': stats,
+        'doctors': stats,
         'start_date': start_date.strftime('%d/%m/%Y'),
         'end_date': end_date.strftime('%d/%m/%Y'),
         'date_range': date_range,
@@ -102,15 +103,16 @@ def therapist_statistics(request):
         'owner1_share': owner1_share,
         'owner2_share': owner2_share,
         'owner1_final': owner1_final,
+        'profit': total_amount - total_payout,
     }
 
-    return render(request, 'adminstration/therapist_stats.html', context)
+    return render(request, 'adminstration/referral_doctor_stats.html', context)
 
 
 @login_required
-def export_therapist_statistics(request):
+def export_referral_doctor_statistics(request):
     """
-    Export therapist statistics to Excel with new profit distribution logic
+    Export referral doctor statistics to Excel with profit distribution logic
     based on actual paid amounts
     """
     # Default date range (last 30 days)
@@ -124,19 +126,19 @@ def export_therapist_statistics(request):
         start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
         end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
 
-    # Get all therapists
-    therapists = TherapistModel.objects.all()
+    # Get all referral doctors
+    referral_doctors = ReferralDoctorModel.objects.all()
 
-    # Process statistics for each therapist
+    # Process statistics for each referral doctor
     stats = []
     total_sessions = 0
     total_amount = 0
     total_payout = 0
 
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
+    for doctor in referral_doctors:
+        # Get sessions for this referral doctor in the date range
         sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
+            referral_doctor=doctor,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,
         )
@@ -150,7 +152,7 @@ def export_therapist_statistics(request):
         # Calculate statistics
         session_count = sessions.aggregate(count=Count('id'))['count'] or 0
 
-        # Skip therapists with no sessions or no payments
+        # Skip doctors with no sessions or no payments
         if session_count == 0 or paid_amount == 0:
             continue
 
@@ -158,17 +160,17 @@ def export_therapist_statistics(request):
         total_sessions += session_count
         total_amount += paid_amount
 
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
+        # Calculate payout based on referral doctor rate
+        rate = doctor.rate if hasattr(doctor, 'rate') else 0
 
-        # New calculation: therapist gets their rate % from HALF of the paid amount
-        owner_share = paid_amount // 2
-        payout = int(owner_share * (rate / 100))
+        # New calculation: referral doctor gets their rate % from HALF of the paid amount
+        owner_share = paid_amount / 2
+        payout = owner_share * (rate / 100)
         total_payout += payout
 
         # Add to stats list
         stats.append({
-            'full_name': therapist.full_name,
+            'full_name': doctor.full_name,
             'rate': rate,
             'session_count': session_count,
             'total_amount': paid_amount,
@@ -179,13 +181,13 @@ def export_therapist_statistics(request):
     owner1_share = total_amount / 2
     owner2_share = total_amount / 2
 
-    # Owner 1 pays the therapists
+    # Owner 1 pays the referral doctors
     owner1_final = owner1_share - total_payout
 
     # Create Excel workbook
     workbook = Workbook()
     worksheet = workbook.active
-    worksheet.title = "Статистика терапевтов"
+    worksheet.title = "Статистика направляющих врачей"
 
     # Set column widths
     worksheet.column_dimensions['A'].width = 5
@@ -196,7 +198,7 @@ def export_therapist_statistics(request):
     worksheet.column_dimensions['F'].width = 20
 
     # Add title
-    title = f"Статистика терапевтов за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
+    title = f"Статистика направляющих врачей за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
     worksheet['A1'] = title
     worksheet.merge_cells('A1:F1')
     title_cell = worksheet['A1']
@@ -212,7 +214,7 @@ def export_therapist_statistics(request):
     subtitle_cell.alignment = Alignment(horizontal='center')
 
     # Add headers
-    headers = ["#", "Терапевт", "Ставка (%)", "Кол-во сеансов", "Оплачено (сум)", "К выплате (сум)"]
+    headers = ["#", "Врач", "Ставка (%)", "Кол-во сеансов", "Оплачено (сум)", "К выплате (сум)"]
     for col_num, header in enumerate(headers, 1):
         cell = worksheet.cell(row=4, column=col_num)
         cell.value = header
@@ -220,13 +222,13 @@ def export_therapist_statistics(request):
         cell.fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
 
     # Add data
-    for row_num, therapist in enumerate(stats, 5):
+    for row_num, doctor in enumerate(stats, 5):
         worksheet.cell(row=row_num, column=1).value = row_num - 4
-        worksheet.cell(row=row_num, column=2).value = therapist['full_name']
-        worksheet.cell(row=row_num, column=3).value = therapist['rate']
-        worksheet.cell(row=row_num, column=4).value = therapist['session_count']
-        worksheet.cell(row=row_num, column=5).value = therapist['total_amount']
-        worksheet.cell(row=row_num, column=6).value = therapist['payout_amount']
+        worksheet.cell(row=row_num, column=2).value = doctor['full_name']
+        worksheet.cell(row=row_num, column=3).value = doctor['rate']
+        worksheet.cell(row=row_num, column=4).value = doctor['session_count']
+        worksheet.cell(row=row_num, column=5).value = doctor['total_amount']
+        worksheet.cell(row=row_num, column=6).value = doctor['payout_amount']
 
     # Add totals
     total_row = len(stats) + 5
@@ -255,7 +257,7 @@ def export_therapist_statistics(request):
     worksheet.merge_cells(f'A{dist_row + 2}:C{dist_row + 2}')
     worksheet.cell(row=dist_row + 2, column=5).value = owner1_share
 
-    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты терапевтам:"
+    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты направляющим врачам:"
     worksheet.merge_cells(f'A{dist_row + 3}:C{dist_row + 3}')
     worksheet.cell(row=dist_row + 3, column=5).value = total_payout
 
@@ -276,7 +278,7 @@ def export_therapist_statistics(request):
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response[
-        'Content-Disposition'] = f'attachment; filename=therapist_statistics_{start_date.strftime("%Y%m%d")}-{end_date.strftime("%Y%m%d")}.xlsx'
+        'Content-Disposition'] = f'attachment; filename=referral_doctor_statistics_{start_date.strftime("%Y%m%d")}-{end_date.strftime("%Y%m%d")}.xlsx'
 
     # Save workbook to response
     workbook.save(response)
@@ -285,9 +287,9 @@ def export_therapist_statistics(request):
 
 
 @login_required
-def export_therapist_statistics_word(request):
+def export_referral_doctor_statistics_word(request):
     """
-    Export therapist statistics to Word document with new profit distribution logic
+    Export referral doctor statistics to Word document with profit distribution logic
     based on actual paid amounts
     """
 
@@ -302,19 +304,19 @@ def export_therapist_statistics_word(request):
         start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
         end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
 
-    # Get all therapists and their statistics
-    therapists = TherapistModel.objects.all()
+    # Get all referral doctors and their statistics
+    referral_doctors = ReferralDoctorModel.objects.all()
 
-    # Process statistics for each therapist
+    # Process statistics for each referral doctor
     stats = []
     total_sessions = 0
     total_amount = 0
     total_payout = 0
 
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
+    for doctor in referral_doctors:
+        # Get sessions for this referral doctor in the date range
         sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
+            referral_doctor=doctor,
             created_at__date__gte=start_date,
             created_at__date__lte=end_date,
         )
@@ -328,7 +330,7 @@ def export_therapist_statistics_word(request):
         # Calculate statistics
         session_count = sessions.aggregate(count=Count('id'))['count'] or 0
 
-        # Skip therapists with no sessions or no payments
+        # Skip doctors with no sessions or no payments
         if session_count == 0 or paid_amount == 0:
             continue
 
@@ -336,17 +338,17 @@ def export_therapist_statistics_word(request):
         total_sessions += session_count
         total_amount += paid_amount
 
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
+        # Calculate payout based on referral doctor rate
+        rate = doctor.rate if hasattr(doctor, 'rate') else 0
 
-        # New calculation: therapist gets their rate % from HALF of the paid amount
-        owner_share = paid_amount // 2
-        payout = int(owner_share * (rate / 100))
+        # New calculation: referral doctor gets their rate % from HALF of the paid amount
+        owner_share = paid_amount / 2
+        payout = owner_share * (rate / 100)
         total_payout += payout
 
         # Add to stats list
         stats.append({
-            'full_name': therapist.full_name,
+            'full_name': doctor.full_name,
             'rate': rate,
             'session_count': session_count,
             'total_amount': paid_amount,
@@ -357,14 +359,14 @@ def export_therapist_statistics_word(request):
     owner1_share = total_amount / 2
     owner2_share = total_amount / 2
 
-    # Owner 1 pays the therapists
+    # Owner 1 pays the referral doctors
     owner1_final = owner1_share - total_payout
 
     # Create a new Word document
     document = Document()
 
     # Add document title
-    title = document.add_heading('Статистика терапевтов', level=1)
+    title = document.add_heading('Статистика направляющих врачей', level=1)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Add date range info
@@ -385,7 +387,7 @@ def export_therapist_statistics_word(request):
 
     header_cells = table.rows[0].cells
     header_cells[0].text = '#'
-    header_cells[1].text = 'Терапевт'
+    header_cells[1].text = 'Врач'
     header_cells[2].text = 'Ставка (%)'
     header_cells[3].text = 'Кол-во сеансов'
     header_cells[4].text = 'Оплачено (сум)'
@@ -432,7 +434,7 @@ def export_therapist_statistics_word(request):
     distribution.add_run('Доля партнера 1 (50%): ').bold = True
     distribution.add_run(f"{owner1_share:,} сум\n".replace(',', ' '))
 
-    distribution.add_run('Выплаты терапевтам: ').bold = True
+    distribution.add_run('Выплаты направляющим врачам: ').bold = True
     distribution.add_run(f"{total_payout:,} сум\n".replace(',', ' '))
 
     distribution.add_run('Итоговая сумма партнера 1: ').bold = True
@@ -450,7 +452,7 @@ def export_therapist_statistics_word(request):
     # Create response with Word document
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document')
     response[
-        'Content-Disposition'] = f'attachment; filename=therapist_statistics_{start_date.strftime("%Y%m%d")}-{end_date.strftime("%Y%m%d")}.docx'
+        'Content-Disposition'] = f'attachment; filename=referral_doctor_statistics_{start_date.strftime("%Y%m%d")}-{end_date.strftime("%Y%m%d")}.docx'
 
     # Save document to response
     document.save(response)
