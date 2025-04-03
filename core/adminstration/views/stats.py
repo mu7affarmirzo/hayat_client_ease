@@ -1,19 +1,18 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum, Count, F, ExpressionWrapper, DecimalField
-from django.http import HttpResponse
 from datetime import datetime, timedelta
-import csv
-import io
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.shortcuts import render
+from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel, ReferralDoctorModel, \
-    IndividualSessionModel
 
-from docx import Document
-from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.table import WD_ALIGN_VERTICAL
+from core.models import (
+    TherapistModel,
+    ReferralDoctorModel,
+    IndividualSessionModel
+)
 
 
 @login_required
@@ -70,77 +69,33 @@ def therapist_statistics(request):
 @login_required
 def export_therapist_statistics(request):
     """
-    Export therapist statistics to Excel with new profit distribution logic
-    based on actual paid amounts
+    Export therapist and referral doctor statistics to Excel.
+    Only completed individual sessions are taken into account.
     """
-    # Default date range (last 30 days)
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=30)
+    # Get date range
+    dates = get_date_range(request)
+    start_date = dates.get('start_date')
+    end_date = dates.get('end_date')
+    date_range = dates.get('date_range')
 
-    # Get date range from request if provided
-    if 'date_range' in request.GET and request.GET['date_range']:
-        date_range = request.GET['date_range']
-        start_str, end_str = date_range.split(' - ')
-        start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
-        end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
+    # Get all completed individual sessions in the date range
+    completed_sessions = IndividualSessionModel.objects.filter(
+        status='completed',
+        completed_at__date__gte=start_date,
+        completed_at__date__lte=end_date
+    ).select_related('booking', 'booking__massage', 'therapist')
 
-    # Get all therapists
-    therapists = TherapistModel.objects.all()
+    # Calculate total amount
+    total_amount = get_completed_sessions_sum(completed_sessions)
 
-    # Process statistics for each therapist
-    stats = []
-    total_sessions = 0
-    total_amount = 0
-    total_payout = 0
+    # Get statistics for therapists and referral doctors
+    therapist_stats, total_therapist_payout = get_therapist_stats(completed_sessions)
+    referral_stats, total_referral_payout, total_referrals, referrals_gen_amount = get_referral_docs_stats(
+        completed_sessions)
 
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
-        sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
-            created_at__date__gte=start_date,
-            created_at__date__lte=end_date,
-        )
-
-        # Calculate total paid amount for these sessions
-        session_ids = sessions.values_list('id', flat=True)
-        paid_amount = PaymentModel.objects.filter(
-            session_id__in=session_ids
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        # Calculate statistics
-        session_count = sessions.aggregate(count=Count('id'))['count'] or 0
-
-        # Skip therapists with no sessions or no payments
-        if session_count == 0 or paid_amount == 0:
-            continue
-
-        # Add to totals
-        total_sessions += session_count
-        total_amount += paid_amount
-
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
-
-        # New calculation: therapist gets their rate % from HALF of the paid amount
-        owner_share = paid_amount // 2
-        payout = int(owner_share * (rate / 100))
-        total_payout += payout
-
-        # Add to stats list
-        stats.append({
-            'full_name': therapist.full_name,
-            'rate': rate,
-            'session_count': session_count,
-            'total_amount': paid_amount,
-            'payout_amount': payout,
-        })
-
-    # Calculate split between owners
-    owner1_share = total_amount / 2
-    owner2_share = total_amount / 2
-
-    # Owner 1 pays the therapists
-    owner1_final = owner1_share - total_payout
+    # Calculate total payout and clinic profit
+    total_payout = total_therapist_payout + total_referral_payout
+    clinic_profit = total_amount - total_payout
 
     # Create Excel workbook
     workbook = Workbook()
@@ -164,23 +119,23 @@ def export_therapist_statistics(request):
     title_cell.alignment = Alignment(horizontal='center')
 
     # Add subtitle about calculation method
-    subtitle = "Расчет на основе фактически оплаченных сумм"
+    subtitle = "Расчет на основе проведенных сеансов"
     worksheet['A2'] = subtitle
     worksheet.merge_cells('A2:F2')
     subtitle_cell = worksheet['A2']
     subtitle_cell.font = Font(italic=True)
     subtitle_cell.alignment = Alignment(horizontal='center')
 
-    # Add headers
-    headers = ["#", "Терапевт", "Ставка (%)", "Кол-во сеансов", "Оплачено (сум)", "К выплате (сум)"]
+    # Add headers for therapists
+    headers = ["#", "Терапевт", "Ставка (%)", "Кол-во сеансов", "Сумма (сум)", "К выплате (сум)"]
     for col_num, header in enumerate(headers, 1):
         cell = worksheet.cell(row=4, column=col_num)
         cell.value = header
         cell.font = Font(bold=True)
         cell.fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
 
-    # Add data
-    for row_num, therapist in enumerate(stats, 5):
+    # Add therapist data
+    for row_num, therapist in enumerate(therapist_stats, 5):
         worksheet.cell(row=row_num, column=1).value = row_num - 4
         worksheet.cell(row=row_num, column=2).value = therapist['full_name']
         worksheet.cell(row=row_num, column=3).value = therapist['rate']
@@ -188,46 +143,86 @@ def export_therapist_statistics(request):
         worksheet.cell(row=row_num, column=5).value = therapist['total_amount']
         worksheet.cell(row=row_num, column=6).value = therapist['payout_amount']
 
-    # Add totals
-    total_row = len(stats) + 5
-    worksheet.cell(row=total_row, column=1).value = "Итого:"
+    # Add therapist totals
+    total_row = len(therapist_stats) + 5
+    worksheet.cell(row=total_row, column=1).value = "Итого терапевты:"
     worksheet.merge_cells(f'A{total_row}:C{total_row}')
-    worksheet.cell(row=total_row, column=4).value = total_sessions
-    worksheet.cell(row=total_row, column=5).value = total_amount
-    worksheet.cell(row=total_row, column=6).value = total_payout
+    worksheet.cell(row=total_row, column=4).value = sum(t['session_count'] for t in therapist_stats)
+    worksheet.cell(row=total_row, column=5).value = sum(t['total_amount'] for t in therapist_stats)
+    worksheet.cell(row=total_row, column=6).value = total_therapist_payout
 
     # Make totals bold
     for col in range(1, 7):
         cell = worksheet.cell(row=total_row, column=col)
         cell.font = Font(bold=True)
 
+    # Add referral doctors section if there are any
+    if referral_stats:
+        ref_title_row = total_row + 2
+        worksheet.cell(row=ref_title_row, column=1).value = "Статистика докторов-рефералов"
+        worksheet.merge_cells(f'A{ref_title_row}:F{ref_title_row}')
+        ref_title_cell = worksheet.cell(row=ref_title_row, column=1)
+        ref_title_cell.font = Font(size=12, bold=True)
+        ref_title_cell.alignment = Alignment(horizontal='center')
+
+        # Add headers for referral doctors
+        ref_headers = ["#", "Доктор-реферал", "Ставка (%)", "Кол-во направлений", "Сумма (сум)", "К выплате (сум)"]
+        ref_header_row = ref_title_row + 1
+        for col_num, header in enumerate(ref_headers, 1):
+            cell = worksheet.cell(row=ref_header_row, column=col_num)
+            cell.value = header
+            cell.font = Font(bold=True)
+            cell.fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
+
+        # Add referral doctor data
+        for row_num, doctor in enumerate(referral_stats, ref_header_row + 1):
+            worksheet.cell(row=row_num, column=1).value = row_num - ref_header_row
+            worksheet.cell(row=row_num, column=2).value = doctor['full_name']
+            worksheet.cell(row=row_num, column=3).value = doctor['rate']
+            worksheet.cell(row=row_num, column=4).value = doctor['referral_count']
+            worksheet.cell(row=row_num, column=5).value = doctor['total_amount']
+            worksheet.cell(row=row_num, column=6).value = doctor['payout_amount']
+
+        # Add referral doctor totals
+        ref_total_row = len(referral_stats) + ref_header_row + 1
+        worksheet.cell(row=ref_total_row, column=1).value = "Итого рефералы:"
+        worksheet.merge_cells(f'A{ref_total_row}:C{ref_total_row}')
+        worksheet.cell(row=ref_total_row, column=4).value = total_referrals
+        worksheet.cell(row=ref_total_row, column=5).value = referrals_gen_amount
+        worksheet.cell(row=ref_total_row, column=6).value = total_referral_payout
+
+        # Make totals bold
+        for col in range(1, 7):
+            cell = worksheet.cell(row=ref_total_row, column=col)
+            cell.font = Font(bold=True)
+    else:
+        ref_total_row = total_row
+
     # Add profit distribution section
-    dist_row = total_row + 2
+    dist_row = ref_total_row + 2
     worksheet.cell(row=dist_row, column=1).value = "Распределение прибыли:"
     worksheet.merge_cells(f'A{dist_row}:F{dist_row}')
     worksheet.cell(row=dist_row, column=1).font = Font(bold=True)
 
-    worksheet.cell(row=dist_row + 1, column=1).value = "Общая оплаченная сумма:"
-    worksheet.merge_cells(f'A{dist_row + 1}:C{dist_row + 1}')
+    worksheet.cell(row=dist_row + 1, column=1).value = "Общая сумма за сеансы:"
+    worksheet.merge_cells(f'A{dist_row + 1}:D{dist_row + 1}')
     worksheet.cell(row=dist_row + 1, column=5).value = total_amount
 
-    worksheet.cell(row=dist_row + 2, column=1).value = "Доля партнера 1 (50%):"
-    worksheet.merge_cells(f'A{dist_row + 2}:C{dist_row + 2}')
-    worksheet.cell(row=dist_row + 2, column=5).value = owner1_share
+    worksheet.cell(row=dist_row + 2, column=1).value = "Выплаты терапевтам:"
+    worksheet.merge_cells(f'A{dist_row + 2}:D{dist_row + 2}')
+    worksheet.cell(row=dist_row + 2, column=5).value = total_therapist_payout
 
-    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты терапевтам:"
-    worksheet.merge_cells(f'A{dist_row + 3}:C{dist_row + 3}')
-    worksheet.cell(row=dist_row + 3, column=5).value = total_payout
+    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты докторам-рефералам:"
+    worksheet.merge_cells(f'A{dist_row + 3}:D{dist_row + 3}')
+    worksheet.cell(row=dist_row + 3, column=5).value = total_referral_payout
 
-    worksheet.cell(row=dist_row + 4, column=1).value = "Итоговая сумма партнера 1:"
-    worksheet.merge_cells(f'A{dist_row + 4}:C{dist_row + 4}')
-    worksheet.cell(row=dist_row + 4, column=5).value = owner1_final
-    worksheet.cell(row=dist_row + 4, column=1).font = Font(bold=True)
-    worksheet.cell(row=dist_row + 4, column=5).font = Font(bold=True)
+    worksheet.cell(row=dist_row + 4, column=1).value = "Общие выплаты:"
+    worksheet.merge_cells(f'A{dist_row + 4}:D{dist_row + 4}')
+    worksheet.cell(row=dist_row + 4, column=5).value = total_payout
 
-    worksheet.cell(row=dist_row + 5, column=1).value = "Доля партнера 2 (50%):"
-    worksheet.merge_cells(f'A{dist_row + 5}:C{dist_row + 5}')
-    worksheet.cell(row=dist_row + 5, column=5).value = owner2_share
+    worksheet.cell(row=dist_row + 5, column=1).value = "Выручка клиники:"
+    worksheet.merge_cells(f'A{dist_row + 5}:D{dist_row + 5}')
+    worksheet.cell(row=dist_row + 5, column=5).value = clinic_profit
     worksheet.cell(row=dist_row + 5, column=1).font = Font(bold=True)
     worksheet.cell(row=dist_row + 5, column=5).font = Font(bold=True)
 
@@ -247,78 +242,33 @@ def export_therapist_statistics(request):
 @login_required
 def export_therapist_statistics_word(request):
     """
-    Export therapist statistics to Word document with new profit distribution logic
-    based on actual paid amounts
+    Export therapist and referral doctor statistics to Word document.
+    Only completed individual sessions are taken into account.
     """
+    # Get date range
+    dates = get_date_range(request)
+    start_date = dates.get('start_date')
+    end_date = dates.get('end_date')
+    date_range = dates.get('date_range')
 
-    # Default date range (last 30 days)
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=30)
+    # Get all completed individual sessions in the date range
+    completed_sessions = IndividualSessionModel.objects.filter(
+        status='completed',
+        completed_at__date__gte=start_date,
+        completed_at__date__lte=end_date
+    ).select_related('booking', 'booking__massage', 'therapist')
 
-    # Get date range from request if provided
-    if 'date_range' in request.GET and request.GET['date_range']:
-        date_range = request.GET['date_range']
-        start_str, end_str = date_range.split(' - ')
-        start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
-        end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
+    # Calculate total amount
+    total_amount = get_completed_sessions_sum(completed_sessions)
 
-    # Get all therapists and their statistics
-    therapists = TherapistModel.objects.all()
+    # Get statistics for therapists and referral doctors
+    therapist_stats, total_therapist_payout = get_therapist_stats(completed_sessions)
+    referral_stats, total_referral_payout, total_referrals, referrals_gen_amount = get_referral_docs_stats(
+        completed_sessions)
 
-    # Process statistics for each therapist
-    stats = []
-    total_sessions = 0
-    total_amount = 0
-    total_payout = 0
-
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
-        sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
-            created_at__date__gte=start_date,
-            created_at__date__lte=end_date,
-        )
-
-        # Calculate total paid amount for these sessions
-        session_ids = sessions.values_list('id', flat=True)
-        paid_amount = PaymentModel.objects.filter(
-            session_id__in=session_ids
-        ).aggregate(total=Sum('amount'))['total'] or 0
-
-        # Calculate statistics
-        session_count = sessions.aggregate(count=Count('id'))['count'] or 0
-
-        # Skip therapists with no sessions or no payments
-        if session_count == 0 or paid_amount == 0:
-            continue
-
-        # Add to totals
-        total_sessions += session_count
-        total_amount += paid_amount
-
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
-
-        # New calculation: therapist gets their rate % from HALF of the paid amount
-        owner_share = paid_amount // 2
-        payout = int(owner_share * (rate / 100))
-        total_payout += payout
-
-        # Add to stats list
-        stats.append({
-            'full_name': therapist.full_name,
-            'rate': rate,
-            'session_count': session_count,
-            'total_amount': paid_amount,
-            'payout_amount': payout,
-        })
-
-    # Calculate split between owners
-    owner1_share = total_amount / 2
-    owner2_share = total_amount / 2
-
-    # Owner 1 pays the therapists
-    owner1_final = owner1_share - total_payout
+    # Calculate total payout and clinic profit
+    total_payout = total_therapist_payout + total_referral_payout
+    clinic_profit = total_amount - total_payout
 
     # Create a new Word document
     document = Document()
@@ -332,14 +282,18 @@ def export_therapist_statistics_word(request):
     date_info.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Add subtitle about calculation method
-    subtitle = document.add_paragraph('Расчет на основе фактически оплаченных сумм')
+    subtitle = document.add_paragraph('Расчет на основе проведенных сеансов')
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
     subtitle.style = 'Subtitle'
 
     # Add some space
     document.add_paragraph()
 
-    # Add table headers
+    # THERAPIST SECTION
+    document.add_heading('Статистика терапевтов', level=2)
+    document.add_paragraph()
+
+    # Add table headers for therapists
     table = document.add_table(rows=1, cols=6)
     table.style = 'Table Grid'
 
@@ -348,7 +302,7 @@ def export_therapist_statistics_word(request):
     header_cells[1].text = 'Терапевт'
     header_cells[2].text = 'Ставка (%)'
     header_cells[3].text = 'Кол-во сеансов'
-    header_cells[4].text = 'Оплачено (сум)'
+    header_cells[4].text = 'Сумма (сум)'
     header_cells[5].text = 'К выплате (сум)'
 
     # Make headers bold
@@ -357,8 +311,8 @@ def export_therapist_statistics_word(request):
             for run in paragraph.runs:
                 run.bold = True
 
-    # Add data rows
-    for idx, stat in enumerate(stats, 1):
+    # Add data rows for therapists
+    for idx, stat in enumerate(therapist_stats, 1):
         row_cells = table.add_row().cells
         row_cells[0].text = str(idx)
         row_cells[1].text = stat['full_name']
@@ -367,13 +321,13 @@ def export_therapist_statistics_word(request):
         row_cells[4].text = f"{stat['total_amount']:,} сум".replace(',', ' ')
         row_cells[5].text = f"{stat['payout_amount']:,} сум".replace(',', ' ')
 
-    # Add totals row
+    # Add totals row for therapists
     totals_row = table.add_row().cells
     totals_row[0].merge(totals_row[2])
-    totals_row[0].text = 'Итого:'
-    totals_row[3].text = str(total_sessions)
-    totals_row[4].text = f"{total_amount:,} сум".replace(',', ' ')
-    totals_row[5].text = f"{total_payout:,} сум".replace(',', ' ')
+    totals_row[0].text = 'Итого терапевты:'
+    totals_row[3].text = str(sum(t['session_count'] for t in therapist_stats))
+    totals_row[4].text = f"{sum(t['total_amount'] for t in therapist_stats):,} сум".replace(',', ' ')
+    totals_row[5].text = f"{total_therapist_payout:,} сум".replace(',', ' ')
 
     # Make totals bold
     for cell in totals_row:
@@ -381,25 +335,100 @@ def export_therapist_statistics_word(request):
             for run in paragraph.runs:
                 run.bold = True
 
+    # REFERRAL DOCTORS SECTION (if any)
+    if referral_stats:
+        document.add_paragraph()
+        document.add_heading('Статистика докторов-рефералов', level=2)
+        document.add_paragraph()
+
+        # Add table headers for referral doctors
+        ref_table = document.add_table(rows=1, cols=6)
+        ref_table.style = 'Table Grid'
+
+        ref_header_cells = ref_table.rows[0].cells
+        ref_header_cells[0].text = '#'
+        ref_header_cells[1].text = 'Доктор-реферал'
+        ref_header_cells[2].text = 'Ставка (%)'
+        ref_header_cells[3].text = 'Кол-во направлений'
+        ref_header_cells[4].text = 'Сумма (сум)'
+        ref_header_cells[5].text = 'К выплате (сум)'
+
+        # Make headers bold
+        for cell in ref_header_cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+
+        # Add data rows for referral doctors
+        for idx, stat in enumerate(referral_stats, 1):
+            row_cells = ref_table.add_row().cells
+            row_cells[0].text = str(idx)
+            row_cells[1].text = stat['full_name']
+            row_cells[2].text = f"{stat['rate']}%"
+            row_cells[3].text = str(stat['referral_count'])
+            row_cells[4].text = f"{stat['total_amount']:,} сум".replace(',', ' ')
+            row_cells[5].text = f"{stat['payout_amount']:,} сум".replace(',', ' ')
+
+        # Add totals row for referral doctors
+        ref_totals_row = ref_table.add_row().cells
+        ref_totals_row[0].merge(ref_totals_row[2])
+        ref_totals_row[0].text = 'Итого рефералы:'
+        ref_totals_row[3].text = str(total_referrals)
+        ref_totals_row[4].text = f"{referrals_gen_amount:,} сум".replace(',', ' ')
+        ref_totals_row[5].text = f"{total_referral_payout:,} сум".replace(',', ' ')
+
+        # Make totals bold
+        for cell in ref_totals_row:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.bold = True
+
     # Add profit distribution section
     document.add_paragraph()
     document.add_heading('Распределение прибыли', level=2)
 
     distribution = document.add_paragraph()
-    distribution.add_run('Общая оплаченная сумма: ').bold = True
+    distribution.add_run('Общая сумма за сеансы: ').bold = True
     distribution.add_run(f"{total_amount:,} сум\n".replace(',', ' '))
 
-    distribution.add_run('Доля партнера 1 (50%): ').bold = True
-    distribution.add_run(f"{owner1_share:,} сум\n".replace(',', ' '))
-
     distribution.add_run('Выплаты терапевтам: ').bold = True
+    distribution.add_run(f"{total_therapist_payout:,} сум\n".replace(',', ' '))
+
+    distribution.add_run('Выплаты докторам-рефералам: ').bold = True
+    distribution.add_run(f"{total_referral_payout:,} сум\n".replace(',', ' '))
+
+    distribution.add_run('Общие выплаты: ').bold = True
     distribution.add_run(f"{total_payout:,} сум\n".replace(',', ' '))
 
-    distribution.add_run('Итоговая сумма партнера 1: ').bold = True
-    distribution.add_run(f"{owner1_final:,} сум\n".replace(',', ' '))
+    distribution.add_run('Выручка клиники: ').bold = True
+    distribution.add_run(f"{clinic_profit:,} сум".replace(',', ' '))
 
-    distribution.add_run('Доля партнера 2 (50%): ').bold = True
-    distribution.add_run(f"{owner2_share:,} сум".replace(',', ' '))
+    # Add some space
+    document.add_paragraph()
+
+    # Add summary section
+    document.add_heading('Сводная информация', level=2)
+    summary = document.add_paragraph()
+    summary.add_run('Всего проведено сеансов: ').bold = True
+    summary.add_run(f"{len(completed_sessions)}\n")
+
+    if total_referrals > 0:
+        summary.add_run('Всего направлений: ').bold = True
+        summary.add_run(f"{total_referrals}\n")
+
+    summary.add_run('Процент выплат от общей суммы: ').bold = True
+    if total_amount > 0:
+        payout_percentage = (total_payout / total_amount) * 100
+        summary.add_run(f"{payout_percentage:.2f}%\n")
+    else:
+        summary.add_run("0%\n")
+
+    summary.add_run('Процент прибыли клиники: ').bold = True
+    if total_amount > 0:
+        profit_percentage = (clinic_profit / total_amount) * 100
+        summary.add_run(f"{profit_percentage:.2f}%")
+    else:
+        summary.add_run("0%")
 
     # Add footer
     document.add_paragraph()
