@@ -1,0 +1,54 @@
+{% extends 'snippets/base.html' %}
+
+{% block title %}Удаление типа услуги | {{ block.super }}{% endblock %}
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">Удаление типа услуги</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'administration_services:service_type_list' %}">Типы услуг</a></li><li class="breadcrumb-item active">Удаление</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card card-danger">
+          <div class="card-header">
+            <h3 class="card-title">Подтверждение удаления</h3>
+          </div>
+          <div class="card-body">
+            <p>Вы уверены, что хотите удалить тип услуги "{{ service_type.type }}"?</p>
+            {% if service_type.services.exists %}
+            <div class="alert alert-warning">
+              <i class="icon fas fa-exclamation-triangle"></i> Внимание!
+              <p>У этого типа услуги есть связанные услуги ({{ service_type.services.count }}). При удалении типа эти связи будут потеряны.</p>
+            </div>
+            {% endif %}
+          </div>
+          <div class="card-footer">
+            <form method="post">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-danger">Удалить</button>
+              <a href="{% url 'administration_services:service_type_list' %}" class="btn btn-default">Отмена</a></form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /.content -->
+{% endblock %}

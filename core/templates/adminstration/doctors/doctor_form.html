@@ -1,0 +1,109 @@
+{% extends 'snippets/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">{% if doctor %}Редактирование доктора-реферала{% else %}Новый доктор-реферал{% endif %}</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'administration:doctor_list' %}">Доктора-рефералы</a></li>
+                    <li class="breadcrumb-item active">{% if doctor %}Редактирование{% else %}Добавление{% endif %}</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Данные доктора-реферала</h3>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="card-body">
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+
+                            <div class="form-group">
+                                <label for="{{ form.f_name.id_for_label }}">Имя</label>
+                                {{ form.f_name.errors }}
+                                <input type="text" class="form-control {% if form.f_name.errors %}is-invalid{% endif %}"
+                                       id="{{ form.f_name.id_for_label }}" name="{{ form.f_name.html_name }}"
+                                       value="{{ form.f_name.value|default:'' }}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.l_name.id_for_label }}">Фамилия</label>
+                                {{ form.l_name.errors }}
+                                <input type="text" class="form-control {% if form.l_name.errors %}is-invalid{% endif %}"
+                                       id="{{ form.l_name.id_for_label }}" name="{{ form.l_name.html_name }}"
+                                       value="{{ form.l_name.value|default:'' }}" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.mid_name.id_for_label }}">Отчество</label>
+                                {{ form.mid_name.errors }}
+                                <input type="text" class="form-control {% if form.mid_name.errors %}is-invalid{% endif %}"
+                                       id="{{ form.mid_name.id_for_label }}" name="{{ form.mid_name.html_name }}"
+                                       value="{{ form.mid_name.value|default:'' }}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.email.id_for_label }}">Email</label>
+                                {{ form.email.errors }}
+                                <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                       id="{{ form.email.id_for_label }}" name="{{ form.email.html_name }}"
+                                       value="{{ form.email.value|default:'' }}">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.gender.id_for_label }}">Пол</label>
+                                {{ form.gender.errors }}
+                                <select class="form-control {% if form.gender.errors %}is-invalid{% endif %}"
+                                        id="{{ form.gender.id_for_label }}" name="{{ form.gender.html_name }}">
+                                    <option value="True" {% if form.gender.value == True %}selected{% endif %}>Мужской</option>
+                                    <option value="False" {% if form.gender.value == False %}selected{% endif %}>Женский</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="{{ form.rate.id_for_label }}">Ставка (%)</label>
+                                {{ form.rate.errors }}
+                                <input type="number" class="form-control {% if form.rate.errors %}is-invalid{% endif %}"
+                                       id="{{ form.rate.id_for_label }}" name="{{ form.rate.html_name }}"
+                                       value="{{ form.rate.value|default:'15' }}" min="0" max="100">
+                            </div>
+
+                            <div class="form-group">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input"
+                                           id="{{ form.is_active.id_for_label }}" name="{{ form.is_active.html_name }}"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="custom-control-label" for="{{ form.is_active.id_for_label }}">Активен</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Сохранить</button>
+                            <a href="{% url 'administration:doctor_list' %}" class="btn btn-default float-right">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

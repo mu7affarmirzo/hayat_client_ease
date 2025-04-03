@@ -1,0 +1,42 @@
+{% extends 'snippets/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">Удаление терапевта</h1>
+            </div>
+            <div class="col-sm-6">
+                <ol class="breadcrumb float-sm-right">
+                    <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'administration:therapist_list' %}">Терапевты</a></li>
+                    <li class="breadcrumb-item active">Удаление</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="card card-danger">
+            <div class="card-header">
+                <h3 class="card-title">Подтверждение удаления</h3>
+            </div>
+            <div class="card-body">
+                <p>Вы уверены, что хотите удалить терапевта <strong>{{ therapist.full_name }}</strong>?</p>
+                <p class="text-danger">Это действие нельзя будет отменить.</p>
+            </div>
+            <div class="card-footer">
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                    <a href="{% url 'administration:therapist_detail' therapist.pk %}" class="btn btn-default float-right">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

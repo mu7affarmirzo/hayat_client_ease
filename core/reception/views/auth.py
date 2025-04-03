@@ -2,6 +2,7 @@ from http.client import HTTPResponse
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, logout, login
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Q
 from django.shortcuts import render, redirect
@@ -55,7 +56,7 @@ def logout_view(request):
     return redirect('login')
 
 
-# @role_required(role='sanatorium', login_url='sanatorium_auth:logout')
+@login_required(login_url="reception_auth:login")
 def main_screen_view(request):
     # Get query parameters
     query = request.GET.get('table_search', '')

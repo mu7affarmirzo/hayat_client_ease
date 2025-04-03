@@ -1,0 +1,79 @@
+{% extends 'snippets/base.html' %}
+
+{% block title %}{{ service.name }} | {{ block.super }}{% endblock %}
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<div class="content-header">
+  <div class="container-fluid">
+    <div class="row mb-2">
+      <div class="col-sm-6">
+        <h1 class="m-0">{{ service.name }}</h1>
+      </div>
+      <div class="col-sm-6">
+        <ol class="breadcrumb float-sm-right">
+          <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'administration_services:service_list' %}">Услуги</a></li>
+          <li class="breadcrumb-item active">{{ service.name }}</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- /.content-header -->
+
+<!-- Main content -->
+<section class="content">
+  <div class="container-fluid">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Информация об услуге</h3>
+            <div class="card-tools">
+              <a href="{% url 'administration_services:service_update' service.id %}" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Редактировать
+              </a>
+              <a href="{% url 'administration_services:service_delete' service.id %}" class="btn btn-danger btn-sm">
+                <i class="fas fa-trash"></i> Удалить
+              </a>
+            </div>
+          </div>
+          <!-- /.card-header -->
+          <div class="card-body">
+            <dl class="row">
+              <dt class="col-sm-4">ID:</dt>
+              <dd class="col-sm-8">{{ service.id }}</dd>
+              <dt class="col-sm-4">Название:</dt>
+              <dd class="col-sm-8">{{ service.name }}</dd>
+              <dt class="col-sm-4">Тип услуги:</dt>
+              <dd class="col-sm-8">
+                {% if service.type %}
+                  <a href="{% url 'administration_services:service_type_detail' service.type.id %}">{{ service.type.type }}</a>
+                {% else %}
+                  Не указан
+                {% endif %}
+              </dd>
+              <dt class="col-sm-4">Цена:</dt>
+              <dd class="col-sm-8">{{ service.price }} ₽</dd>
+              <dt class="col-sm-4">Создано:</dt>
+              <dd class="col-sm-8">{{ service.created_at|date:"d.m.Y H:i" }}</dd>
+              <dt class="col-sm-4">Кем создано:</dt>
+              <dd class="col-sm-8">{{ service.created_by.full_name|default:service.created_by.username }}</dd>
+              {% if service.modified_by %}
+              <dt class="col-sm-4">Обновлено:</dt>
+              <dd class="col-sm-8">{{ service.modified_at|date:"d.m.Y H:i" }}</dd>
+              <dt class="col-sm-4">Кем обновлено:</dt>
+              <dd class="col-sm-8">{{ service.modified_by.full_name|default:service.modified_by.username }}</dd>
+              {% endif %}
+            </dl>
+          </div>
+          <!-- /.card-body -->
+        </div>
+        <!-- /.card -->
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /.content -->
+{% endblock %}

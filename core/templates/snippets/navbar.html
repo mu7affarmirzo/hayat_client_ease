@@ -2,7 +2,7 @@
 <nav class="main-header navbar navbar-expand-md navbar-light navbar-white">
     <div class="container">
         <a href="{% url 'reception_auth:main_screen' %}" class="navbar-brand">
-            <img src="{% static 'adminlte3_assets/dist/img/hayat_logo.png' %}" alt="AdminLTE Logo"
+            <img src="{% static 'adminlte3_assets/dist/img/baby_msg_3.png' %}" alt="AdminLTE Logo"
                  class="brand-image img" style="opacity: .8">
             <span class="brand-text font-weight-light"></span>
         </a>
@@ -22,9 +22,11 @@
                 <li class="nav-item">
                     <a href="{% url 'reception_auth:not_paid_list' %}" class="nav-link">Неоплаченные</a>
                 </li>
-                <li class="nav-item">
-                    <a href="{% url 'administration:therapist_statistics' %}" class="nav-link">Статистика</a>
-                </li>
+                {% if request.user.is_superuser %}
+                    <li class="nav-item">
+                        <a href="{% url 'administration:therapist_statistics' %}" class="nav-link">Статистика</a>
+                    </li>
+                {% endif %}
 {#                <li class="nav-item">#}
 {#                    <a href="{% url 'administration:referral_doctor_statistics' %}" class="nav-link">Статистика врачей</a>#}
 {#                </li>#}
