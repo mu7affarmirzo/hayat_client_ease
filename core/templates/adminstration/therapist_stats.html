@@ -58,12 +58,13 @@
                 {% endif %}
 
                 <!-- Add this after the summary cards in the therapist_statistics.html template -->
+                <!-- Replace the profit distribution section with this -->
                 <div class="row">
                     <div class="col-md-12">
                         <div class="card card-primary">
                             <div class="card-header">
                                 <h3 class="card-title">Распределение прибыли</h3>
-                                <small class="text-light ml-3">(на основе фактически оплаченных сумм)</small>
+                                <small class="text-light ml-3">(на основании общей суммы проведённых курсов)</small>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -79,25 +80,28 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="card">
                                             <div class="card-header bg-primary">
-                                                <h3 class="card-title">Партнер 1</h3>
+                                                <h3 class="card-title">Терапевты</h3>
                                             </div>
                                             <div class="card-body">
                                                 <table class="table table-bordered">
                                                     <tr>
-                                                        <th>Доля (50%)</th>
-                                                        <td class="text-right">{{ owner1_share|intcomma }} сум</td>
+                                                        <th>Выплаты терапевтам</th>
+                                                        <td class="text-right">{{ total_therapist_payout|intcomma }}
+                                                            сум
+                                                        </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Выплаты терапевтам</th>
-                                                        <td class="text-right">{{ total_payout|intcomma }} сум</td>
-                                                    </tr>
-                                                    <tr class="bg-light">
-                                                        <th>Итог</th>
-                                                        <td class="text-right font-weight-bold">{{ owner1_final|intcomma }}
-                                                            сум
+                                                        <th>Процент от общей суммы</th>
+                                                        <td class="text-right">
+                                                            {% if total_amount > 0 %}
+                                                                {{ total_therapist_payout|divisibleby:total_amount|floatformat:2 }}
+                                                                %
+                                                            {% else %}
+                                                                0%
+                                                            {% endif %}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -105,25 +109,55 @@
                                         </div>
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="card">
                                             <div class="card-header bg-success">
-                                                <h3 class="card-title">Партнер 2</h3>
+                                                <h3 class="card-title">Докторы-рефералы</h3>
                                             </div>
                                             <div class="card-body">
                                                 <table class="table table-bordered">
                                                     <tr>
-                                                        <th>Доля (50%)</th>
-                                                        <td class="text-right">{{ owner2_share|intcomma }} сум</td>
+                                                        <th>Выплаты докторам</th>
+                                                        <td class="text-right">{{ total_referral_payout|intcomma }}
+                                                            сум
+                                                        </td>
                                                     </tr>
                                                     <tr>
-                                                        <th>Выплаты</th>
-                                                        <td class="text-right">0 сум</td>
+                                                        <th>Процент от общей суммы</th>
+                                                        <td class="text-right">
+                                                            {% if total_amount > 0 %}
+                                                                {{ total_referral_payout|divisibleby:total_amount|floatformat:2 }}
+                                                                %
+                                                            {% else %}
+                                                                0%
+                                                            {% endif %}
+                                                        </td>
                                                     </tr>
-                                                    <tr class="bg-light">
-                                                        <th>Итог</th>
-                                                        <td class="text-right font-weight-bold">{{ owner2_share|intcomma }}
-                                                            сум
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-header bg-danger">
+                                                <h3 class="card-title">Выручка клиники</h3>
+                                            </div>
+                                            <div class="card-body">
+                                                <table class="table table-bordered">
+                                                    <tr>
+                                                        <th>Итоговая прибыль</th>
+                                                        <td class="text-right">{{ clinic_profit|intcomma }} сум</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>Процент от общей суммы</th>
+                                                        <td class="text-right">
+                                                            {% if total_amount > 0 %}
+                                                                {{ clinic_profit|divisibleby:total_amount|floatformat:2 }}
+                                                                %
+                                                            {% else %}
+                                                                0%
+                                                            {% endif %}
                                                         </td>
                                                     </tr>
                                                 </table>
@@ -136,10 +170,10 @@
                                     <div class="col-md-12">
                                         <div class="callout callout-info">
                                             <h5><i class="fas fa-info"></i> Примечание:</h5>
-                                            <p>Общая сумма делится поровну между двумя партнерами (50/50). Терапевты
-                                                получают свой процент от доли первого партнера, в соответствии с их
-                                                ставкой. Расчет производится только на основе фактически оплаченных
-                                                сумм.</p>
+                                            <p>Итоговая прибыль клиники рассчитывается как общая сумма за вычетом выплат
+                                                терапевтам и докторам-рефералам. Терапевты и доктора-рефералы получают
+                                                свой процент в соответствии с их ставкой. Расчет производится только на
+                                                основе фактически оплаченных сумм.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -148,6 +182,7 @@
                     </div>
                 </div>
 
+                <!-- Update the Summary Card section -->
                 <!-- Date Range Filter Form -->
                 <div class="card card-primary">
                     <div class="card-header">
@@ -224,7 +259,7 @@
                                 <tr>
                                     <td>{{ forloop.counter }}</td>
                                     <td>{{ therapist.full_name }}</td>
-                                    <td>{{ therapist.after_share_amount|intcomma }} сум</td>
+                                    <td>{{ therapist.total_amount|intcomma }} сум</td>
                                     <td>{{ therapist.session_count }}</td>
                                     <td>{{ therapist.rate }}%</td>
                                     <td>{{ therapist.payout_amount|intcomma }} сум</td>
@@ -238,10 +273,10 @@
                             <tfoot>
                             <tr class="bg-light font-weight-bold">
                                 <td colspan="2" class="text-right">Итого:</td>
-                                <td>{{ owner2_share|intcomma }} сум</td>
-                                <td>-</td>
+                                <td>{{ total_amount|intcomma }} сум</td>
                                 <td>{{ total_sessions }}</td>
-                                <td>{{ total_payout|intcomma }} сум</td>
+                                <td>-</td>
+                                <td>{{ total_therapist_payout|intcomma }} сум</td>
                             </tr>
                             </tfoot>
                         </table>
@@ -249,6 +284,63 @@
                     <!-- /.card-body -->
                 </div>
                 <!-- /.card -->
+
+                <!-- Add this section for Referral Doctors Statistics Table if needed -->
+                {% if referral_doctors %}
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Статистика докторов-рефералов за период: {{ start_date }}
+                                - {{ end_date }}</h3>
+                            <div class="card-tools">
+                                <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                <tr>
+                                    <th style="width: 10px">#</th>
+                                    <th>Доктор-реферал</th>
+                                    <th>Сумма (сум)</th>
+                                    <th>Кол-во направлений</th>
+                                    <th>Ставка (%)</th>
+                                    <th>К выплате (сум)</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for doctor in referral_doctors %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ doctor.full_name }}</td>
+                                        <td>{{ doctor.total_amount|intcomma }} сум</td>
+                                        <td>{{ doctor.referral_count }}</td>
+                                        <td>{{ doctor.rate }}%</td>
+                                        <td>{{ doctor.payout_amount|intcomma }} сум</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">Нет данных для отображения</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                                <tfoot>
+                                <tr class="bg-light font-weight-bold">
+                                    <td colspan="2" class="text-right">Итого:</td>
+                                    <td>{{ referrals_gen_amount }}</td>
+                                    <td>{{ total_referrals }}</td>
+                                    <td>-</td>
+                                    <td>{{ total_referral_payout|intcomma }} сум</td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                {% endif %}
 
                 <!-- Summary Card -->
                 <div class="row">
@@ -295,7 +387,7 @@
                         <!-- small box -->
                         <div class="small-box bg-danger">
                             <div class="inner">
-                                <h3>{{ profit|intcomma }}</h3>
+                                <h3>{{ clinic_profit|intcomma }}</h3>
                                 <p>Выручка клиники (сум)</p>
                             </div>
                             <div class="icon">
@@ -328,23 +420,23 @@
 <!-- Page specific script -->
 <script>
     $(function () {
-    // Date range picker with time picker
-    $('#date-range').daterangepicker({
-        locale: {
-            format: 'DD/MM/YYYY'
-        }
-    });
+        // Date range picker with time picker
+        $('#date-range').daterangepicker({
+            locale: {
+                format: 'DD/MM/YYYY'
+            }
+        });
 
-    // Export to Excel
-    $('#export-excel').click(function () {
-        window.location.href = "{% url 'administration:export_therapist_statistics' %}?date_range=" + $('#date-range').val();
-    });
+        // Export to Excel
+        $('#export-excel').click(function () {
+            window.location.href = "{% url 'administration:export_therapist_statistics' %}?date_range=" + $('#date-range').val();
+        });
 
-    // Export to Word
-    $('#export-word').click(function () {
-        window.location.href = "{% url 'administration:export_therapist_statistics_word' %}?date_range=" + $('#date-range').val();
+        // Export to Word
+        $('#export-word').click(function () {
+            window.location.href = "{% url 'administration:export_therapist_statistics_word' %}?date_range=" + $('#date-range').val();
+        });
     });
-});
 </script>
 </body>
 </html>

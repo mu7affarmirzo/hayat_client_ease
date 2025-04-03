@@ -7,7 +7,8 @@ import csv
 import io
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill
-from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel
+from core.models import SessionBookingModel, Account, TherapistModel, PaymentModel, ReferralDoctorModel, \
+    IndividualSessionModel
 
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -18,90 +19,49 @@ from docx.enum.table import WD_ALIGN_VERTICAL
 @login_required
 def therapist_statistics(request):
     """
-    View to display therapist statistics for a specified date range
-    with new profit distribution logic based on actual paid amounts
+    View to display therapist and referral doctor statistics for a specified date range.
+    Only completed individual sessions are taken into account.
+    Money calculations are based on the booking model's pricing divided by session quantity.
     """
     # Default date range (last 30 days)
-    end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=30)
-    date_range = f"{start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
+    dates = get_date_range(request)
 
-    # Get date range from request if provided
-    if 'date_range' in request.GET and request.GET['date_range']:
-        date_range = request.GET['date_range']
-        start_str, end_str = date_range.split(' - ')
-        start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
-        end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
+    start_date = dates.get('start_date')
+    end_date = dates.get('end_date')
+    date_range = dates.get('date_range')
 
-    # Get all therapists
-    therapists = TherapistModel.objects.all()
+    # Get all completed individual sessions in the date range
+    # Note: Using completed_at field since that's when the session was actually completed
+    completed_sessions = IndividualSessionModel.objects.filter(
+        status='completed',
+        completed_at__date__gte=start_date,
+        completed_at__date__lte=end_date
+    )
 
-    # Process statistics for each therapist
-    stats = []
-    total_sessions = 0
-    total_amount = 0
-    total_payout = 0
+    total_amount = get_completed_sessions_sum(completed_sessions)
 
-    for therapist in therapists:
-        # Get sessions for this therapist in the date range
-        sessions = SessionBookingModel.objects.filter(
-            therapist=therapist,
-            created_at__date__gte=start_date,
-            created_at__date__lte=end_date,
-        )
+    therapist_stats, total_therapist_payout = get_therapist_stats(completed_sessions)
 
-        # Calculate total paid amount for these sessions
-        session_ids = sessions.values_list('id', flat=True)
-        paid_amount = PaymentModel.objects.filter(
-            session_id__in=session_ids
-        ).aggregate(total=Sum('amount'))['total'] or 0
+    referral_stats, total_referral_payout, ref_doc_total_referrals, referrals_gen_amount = get_referral_docs_stats(completed_sessions)
 
-        # Calculate statistics
-        session_count = sessions.aggregate(total=Sum('proceeded_sessions'))['total'] or 0
-        # Skip therapists with no sessions or no payments
-        if paid_amount == 0:
-            continue
-
-        # Add to totals
-        total_sessions += session_count
-        total_amount += paid_amount
-
-        # Calculate payout based on therapist rate (from one owner's share)
-        rate = therapist.rate if hasattr(therapist, 'rate') else 0
-
-        # New calculation: therapist gets their rate % from HALF of the paid amount
-        owner_share = paid_amount // 2
-        payout = owner_share * (rate / 100)
-        total_payout += payout
-
-        # Add to stats list
-        stats.append({
-            'full_name': therapist.full_name,
-            'total_amount': total_amount,
-            'rate': rate,
-            'session_count': session_count,
-            'after_share_amount': owner_share,
-            'payout_amount': payout,
-        })
-
-    # Calculate split between owners
-    owner1_share = total_amount // 2
-    owner2_share = total_amount // 2
-
-    # Owner 1 pays the therapists
-    owner1_final = int(owner1_share) - total_payout
+    # Calculate total payout and clinic profit
+    total_payout = total_therapist_payout + total_referral_payout
+    clinic_profit = total_amount - total_payout
 
     context = {
-        'therapists': stats,
+        'therapists': therapist_stats,
+        'referral_doctors': referral_stats,
         'start_date': start_date.strftime('%d/%m/%Y'),
         'end_date': end_date.strftime('%d/%m/%Y'),
         'date_range': date_range,
-        'total_sessions': total_sessions,
+        'total_sessions': len(completed_sessions),
+        'total_referrals': ref_doc_total_referrals,
+        'referrals_gen_amount': referrals_gen_amount,
         'total_amount': total_amount,
+        'total_therapist_payout': total_therapist_payout,
+        'total_referral_payout': total_referral_payout,
         'total_payout': total_payout,
-        'owner1_share': owner1_share,
-        'owner2_share': owner2_share,
-        'owner1_final': owner1_final,
+        'clinic_profit': clinic_profit,
     }
 
     return render(request, 'adminstration/therapist_stats.html', context)
@@ -456,3 +416,125 @@ def export_therapist_statistics_word(request):
     document.save(response)
 
     return response
+
+
+def get_date_range(request):
+    # Default date range (last 30 days)
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=30)
+    date_range = f"{start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
+
+    # Get date range from request if provided
+    if 'date_range' in request.GET and request.GET['date_range']:
+        date_range = request.GET['date_range']
+        start_str, end_str = date_range.split(' - ')
+        start_date = datetime.strptime(start_str, '%d/%m/%Y').date()
+        end_date = datetime.strptime(end_str, '%d/%m/%Y').date()
+
+    return {"start_date": start_date, "end_date": end_date, "date_range": date_range}
+
+
+def get_therapist_stats(completed_sessions):
+    therapists = TherapistModel.objects.all()
+
+    # Process statistics for each therapist
+    therapist_stats = []
+    total_generated_amount = 0
+    total_therapist_payout = 0
+
+    for therapist in therapists:
+        therapist_generated_amount = 0
+        # Get completed sessions for this therapist
+        # Note: Using the direct therapist field in IndividualSessionModel
+        therapist_sessions = completed_sessions.filter(
+            therapist=therapist
+        )
+
+        # Calculate session count
+        session_count = therapist_sessions.count()
+
+        # Skip therapists with no completed sessions
+        if session_count == 0:
+            continue
+
+        # Calculate the total amount from completed sessions
+        # Since IndividualSessionModel doesn't have price, we need to calculate from booking
+        for session in therapist_sessions:
+            service = session.booking.massage
+            therapist_generated_amount += service.price
+
+        # Add to totals
+        total_generated_amount += int(therapist_generated_amount)
+
+        # Calculate payout based on therapist rate
+        rate = int(therapist.rate) if hasattr(therapist, 'rate') else 0
+        payout = int(therapist_generated_amount * (rate / 100))
+        total_therapist_payout += payout
+
+        # Add to stats list
+        therapist_stats.append({
+            'full_name': therapist.full_name,
+            'total_amount': therapist_generated_amount,
+            'rate': rate,
+            'session_count': session_count,
+            'payout_amount': payout,
+        })
+    return therapist_stats, int(total_therapist_payout)
+
+
+def get_referral_docs_stats(completed_sessions):
+    # Get all referral doctors
+    referral_doctors = ReferralDoctorModel.objects.all()
+
+    # Process statistics for each referral doctor
+    referral_stats = []
+    total_referrals = 0
+    total_referral_payout = 0
+
+    referrals_gen_amount = 0
+
+    for doctor in referral_doctors:
+        # Get completed sessions referred by this doctor
+        # We need to go through the booking to get the referral doctor
+        referred_sessions = completed_sessions.filter(
+            booking__referral_doctor=doctor
+        )
+
+        # Calculate referral count
+        referred_session_count = referred_sessions.count()
+
+        # Skip doctors with no completed referred sessions
+        if referred_session_count == 0:
+            continue
+
+        # Calculate the total amount from completed referred sessions
+        ref_doc_generated_amount = 0
+        for session in referred_sessions:
+            service = session.booking.massage
+            ref_doc_generated_amount += service.price
+
+        # Calculate payout based on referral doctor rate
+        rate = doctor.rate if hasattr(doctor, 'rate') else 0
+        payout = ref_doc_generated_amount * (rate / 100)
+        total_referral_payout += payout
+        total_referrals += referred_session_count
+
+        referrals_gen_amount += ref_doc_generated_amount
+
+        # Add to stats list
+        referral_stats.append({
+            'full_name': doctor.full_name,
+            'total_amount': ref_doc_generated_amount,
+            'rate': rate,
+            'referral_count': referred_session_count,
+            'payout_amount': payout,
+        })
+    return referral_stats, int(total_referral_payout), total_referrals, referrals_gen_amount
+
+
+def get_completed_sessions_sum(completed_sessions):
+    result = 0
+    for session in completed_sessions:
+        result += session.booking.massage.price
+
+    return result

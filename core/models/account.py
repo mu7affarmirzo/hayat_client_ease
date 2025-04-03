@@ -107,10 +107,8 @@ class TherapistModel(models.Model):
 
     sex = models.BooleanField(default=True)
 
-    rate = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=0,
+    rate = models.IntegerField(
+        default=15,
         verbose_name="Ставка терапевта (%)"
     )
 
