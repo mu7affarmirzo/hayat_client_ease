@@ -6,12 +6,12 @@
     <div class="container-fluid">
         <div class="row mb-2">
             <div class="col-sm-6">
-                <h1 class="m-0">Информация о терапевте</h1>
+                <h1 class="m-0">Информация о Массажисте</h1>
             </div>
             <div class="col-sm-6">
                 <ol class="breadcrumb float-sm-right">
                     <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
-                    <li class="breadcrumb-item"><a href="{% url 'administration:therapist_list' %}">Терапевты</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'administration:therapist_list' %}">Массажисты</a></li>
                     <li class="breadcrumb-item active">{{ therapist.full_name }}</li>
                 </ol>
             </div>
@@ -37,12 +37,12 @@
                         <div class="text-center">
                             <img class="profile-user-img img-fluid img-circle"
                                  src="{% static 'adminlte3_assets/dist/img/avatar-default.png' %}"
-                                 alt="Фото терапевта">
+                                 alt="Фото Массажиста">
                         </div>
 
                         <h3 class="profile-username text-center">{{ therapist.full_name }}</h3>
 
-                        <p class="text-muted text-center">Терапевт</p>
+                        <p class="text-muted text-center">Массажист</p>
 
                         <ul class="list-group list-group-unbordered mb-3">
                             <li class="list-group-item">

@@ -185,7 +185,7 @@ def export_therapist_statistics(request):
     # Create Excel workbook
     workbook = Workbook()
     worksheet = workbook.active
-    worksheet.title = "Статистика терапевтов"
+    worksheet.title = "Статистика Массажистов"
 
     # Set column widths
     worksheet.column_dimensions['A'].width = 5
@@ -196,7 +196,7 @@ def export_therapist_statistics(request):
     worksheet.column_dimensions['F'].width = 20
 
     # Add title
-    title = f"Статистика терапевтов за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
+    title = f"Статистика Массажистов за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
     worksheet['A1'] = title
     worksheet.merge_cells('A1:F1')
     title_cell = worksheet['A1']
@@ -212,7 +212,7 @@ def export_therapist_statistics(request):
     subtitle_cell.alignment = Alignment(horizontal='center')
 
     # Add headers
-    headers = ["#", "Терапевт", "Ставка (%)", "Кол-во сеансов", "Оплачено (сум)", "К выплате (сум)"]
+    headers = ["#", "Массажист", "Ставка (%)", "Кол-во сеансов", "Оплачено (сум)", "К выплате (сум)"]
     for col_num, header in enumerate(headers, 1):
         cell = worksheet.cell(row=4, column=col_num)
         cell.value = header
@@ -255,7 +255,7 @@ def export_therapist_statistics(request):
     worksheet.merge_cells(f'A{dist_row + 2}:C{dist_row + 2}')
     worksheet.cell(row=dist_row + 2, column=5).value = owner1_share
 
-    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты терапевтам:"
+    worksheet.cell(row=dist_row + 3, column=1).value = "Выплаты Массажистам:"
     worksheet.merge_cells(f'A{dist_row + 3}:C{dist_row + 3}')
     worksheet.cell(row=dist_row + 3, column=5).value = total_payout
 
@@ -369,7 +369,7 @@ def export_therapist_statistics_word(request):
     document = Document()
 
     # Add document title
-    title = document.add_heading('Статистика терапевтов', level=1)
+    title = document.add_heading('Статистика Массажистов', level=1)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Add date range info
@@ -390,7 +390,7 @@ def export_therapist_statistics_word(request):
 
     header_cells = table.rows[0].cells
     header_cells[0].text = '#'
-    header_cells[1].text = 'Терапевт'
+    header_cells[1].text = 'Массажист'
     header_cells[2].text = 'Ставка (%)'
     header_cells[3].text = 'Кол-во сеансов'
     header_cells[4].text = 'Оплачено (сум)'
@@ -437,7 +437,7 @@ def export_therapist_statistics_word(request):
     distribution.add_run('Доля партнера 1 (50%): ').bold = True
     distribution.add_run(f"{owner1_share:,} сум\n".replace(',', ' '))
 
-    distribution.add_run('Выплаты терапевтам: ').bold = True
+    distribution.add_run('Выплаты Массажистам: ').bold = True
     distribution.add_run(f"{total_payout:,} сум\n".replace(',', ' '))
 
     distribution.add_run('Итоговая сумма партнера 1: ').bold = True

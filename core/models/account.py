@@ -50,7 +50,7 @@ class Account(AbstractBaseUser):
         max_digits=5,
         decimal_places=2,
         default=0,
-        verbose_name="Ставка терапевта (%)"
+        verbose_name="Ставка Массажиста (%)"
     )
 
     is_staff = models.BooleanField(default=False)
@@ -107,7 +107,7 @@ class TherapistModel(models.Model):
 
     rate = models.IntegerField(
         default=15,
-        verbose_name="Ставка терапевта (%)"
+        verbose_name="Ставка Массажиста (%)"
     )
 
     def __str__(self):

@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Hayat Medical Center - Статистика терапевтов</title>
+    <title>Hayat Medical Center - Статистика Массажистов</title>
 
     <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet"
@@ -30,13 +30,13 @@
             <div class="container-fluid">
                 <div class="row mb-2">
                     <div class="col-sm-6">
-                        <h1 class="m-0">Статистика терапевтов</h1>
+                        <h1 class="m-0">Статистика Массажистов</h1>
                     </div>
                     <div class="col-sm-6">
                         <ol class="breadcrumb float-sm-right">
                             <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a>
                             </li>
-                            <li class="breadcrumb-item active">Статистика терапевтов</li>
+                            <li class="breadcrumb-item active">Статистика Массажистов</li>
                         </ol>
                     </div>
                 </div>
@@ -83,12 +83,12 @@
                                     <div class="col-md-4">
                                         <div class="card">
                                             <div class="card-header bg-primary">
-                                                <h3 class="card-title">Терапевты</h3>
+                                                <h3 class="card-title">Массажисты</h3>
                                             </div>
                                             <div class="card-body">
                                                 <table class="table table-bordered">
                                                     <tr>
-                                                        <th>Выплаты терапевтам</th>
+                                                        <th>Выплаты Массажистам</th>
                                                         <td class="text-right">{{ total_therapist_payout|intcomma }}
                                                             сум
                                                         </td>
@@ -171,7 +171,7 @@
                                         <div class="callout callout-info">
                                             <h5><i class="fas fa-info"></i> Примечание:</h5>
                                             <p>Итоговая прибыль клиники рассчитывается как общая сумма за вычетом выплат
-                                                терапевтам и докторам-рефералам. Терапевты и доктора-рефералы получают
+                                                Массажистам и докторам-рефералам. Массажисты и доктора-рефералы получают
                                                 свой процент в соответствии с их ставкой. Расчет производится только на
                                                 основе фактически оплаченных сумм.</p>
                                         </div>
@@ -247,7 +247,7 @@
                             <thead>
                             <tr>
                                 <th style="width: 10px">#</th>
-                                <th>Терапевт</th>
+                                <th>Массажист</th>
                                 <th>Сумма (сум)</th>
                                 <th>Кол-во сеансов</th>
                                 <th>Ставка (%)</th>

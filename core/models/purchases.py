@@ -75,7 +75,7 @@ class IndividualSessionModel(models.Model):
 
     therapist = models.ForeignKey('TherapistModel', on_delete=models.SET_NULL,
                                   related_name='conducted_sessions', null=True, blank=True,
-                                  verbose_name=_('Терапевт'))
+                                  verbose_name=_('Массажист'))
 
     completed_at = models.DateTimeField(null=True, blank=True,
                                         verbose_name=_('Дата проведения'))

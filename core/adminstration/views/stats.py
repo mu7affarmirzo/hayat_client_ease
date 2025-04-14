@@ -100,7 +100,7 @@ def export_therapist_statistics(request):
     # Create Excel workbook
     workbook = Workbook()
     worksheet = workbook.active
-    worksheet.title = "Статистика терапевтов"
+    worksheet.title = "Статистика Массажистов"
 
     # Set column widths
     worksheet.column_dimensions['A'].width = 5
@@ -111,7 +111,7 @@ def export_therapist_statistics(request):
     worksheet.column_dimensions['F'].width = 20
 
     # Add title
-    title = f"Статистика терапевтов за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
+    title = f"Статистика Массажистов за период {start_date.strftime('%d/%m/%Y')} - {end_date.strftime('%d/%m/%Y')}"
     worksheet['A1'] = title
     worksheet.merge_cells('A1:F1')
     title_cell = worksheet['A1']
@@ -127,7 +127,7 @@ def export_therapist_statistics(request):
     subtitle_cell.alignment = Alignment(horizontal='center')
 
     # Add headers for therapists
-    headers = ["#", "Терапевт", "Ставка (%)", "Кол-во сеансов", "Сумма (сум)", "К выплате (сум)"]
+    headers = ["#", "Массажист", "Ставка (%)", "Кол-во сеансов", "Сумма (сум)", "К выплате (сум)"]
     for col_num, header in enumerate(headers, 1):
         cell = worksheet.cell(row=4, column=col_num)
         cell.value = header
@@ -145,7 +145,7 @@ def export_therapist_statistics(request):
 
     # Add therapist totals
     total_row = len(therapist_stats) + 5
-    worksheet.cell(row=total_row, column=1).value = "Итого терапевты:"
+    worksheet.cell(row=total_row, column=1).value = "Итого Массажисты:"
     worksheet.merge_cells(f'A{total_row}:C{total_row}')
     worksheet.cell(row=total_row, column=4).value = sum(t['session_count'] for t in therapist_stats)
     worksheet.cell(row=total_row, column=5).value = sum(t['total_amount'] for t in therapist_stats)
@@ -208,7 +208,7 @@ def export_therapist_statistics(request):
     worksheet.merge_cells(f'A{dist_row + 1}:D{dist_row + 1}')
     worksheet.cell(row=dist_row + 1, column=5).value = total_amount
 
-    worksheet.cell(row=dist_row + 2, column=1).value = "Выплаты терапевтам:"
+    worksheet.cell(row=dist_row + 2, column=1).value = "Выплаты Массажистам:"
     worksheet.merge_cells(f'A{dist_row + 2}:D{dist_row + 2}')
     worksheet.cell(row=dist_row + 2, column=5).value = total_therapist_payout
 
@@ -274,7 +274,7 @@ def export_therapist_statistics_word(request):
     document = Document()
 
     # Add document title
-    title = document.add_heading('Статистика терапевтов', level=1)
+    title = document.add_heading('Статистика Массажистов', level=1)
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     # Add date range info
@@ -290,7 +290,7 @@ def export_therapist_statistics_word(request):
     document.add_paragraph()
 
     # THERAPIST SECTION
-    document.add_heading('Статистика терапевтов', level=2)
+    document.add_heading('Статистика Массажистов', level=2)
     document.add_paragraph()
 
     # Add table headers for therapists
@@ -299,7 +299,7 @@ def export_therapist_statistics_word(request):
 
     header_cells = table.rows[0].cells
     header_cells[0].text = '#'
-    header_cells[1].text = 'Терапевт'
+    header_cells[1].text = 'Массажист'
     header_cells[2].text = 'Ставка (%)'
     header_cells[3].text = 'Кол-во сеансов'
     header_cells[4].text = 'Сумма (сум)'
@@ -324,7 +324,7 @@ def export_therapist_statistics_word(request):
     # Add totals row for therapists
     totals_row = table.add_row().cells
     totals_row[0].merge(totals_row[2])
-    totals_row[0].text = 'Итого терапевты:'
+    totals_row[0].text = 'Итого Массажисты:'
     totals_row[3].text = str(sum(t['session_count'] for t in therapist_stats))
     totals_row[4].text = f"{sum(t['total_amount'] for t in therapist_stats):,} сум".replace(',', ' ')
     totals_row[5].text = f"{total_therapist_payout:,} сум".replace(',', ' ')
@@ -391,7 +391,7 @@ def export_therapist_statistics_word(request):
     distribution.add_run('Общая сумма за сеансы: ').bold = True
     distribution.add_run(f"{total_amount:,} сум\n".replace(',', ' '))
 
-    distribution.add_run('Выплаты терапевтам: ').bold = True
+    distribution.add_run('Выплаты Массажистам: ').bold = True
     distribution.add_run(f"{total_therapist_payout:,} сум\n".replace(',', ' '))
 
     distribution.add_run('Выплаты докторам-рефералам: ').bold = True

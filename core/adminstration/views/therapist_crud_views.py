@@ -33,7 +33,7 @@ class TherapistCreateView(LoginRequiredMixin, SuperuserRequiredMixin, CreateView
     success_url = reverse_lazy('administration:therapist_list')
 
     def form_valid(self, form):
-        messages.success(self.request, 'Терапевт успешно добавлен.')
+        messages.success(self.request, 'Массажист успешно добавлен.')
         return super().form_valid(form)
 
 
@@ -47,7 +47,7 @@ class TherapistUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView
         return reverse_lazy('administration:therapist_detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
-        messages.success(self.request, 'Информация о терапевте успешно обновлена.')
+        messages.success(self.request, 'Информация о Массажисте успешно обновлена.')
         return super().form_valid(form)
 
 
@@ -58,5 +58,5 @@ class TherapistDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, DeleteView
     success_url = reverse_lazy('administration:therapist_list')
 
     def delete(self, request, *args, **kwargs):
-        messages.success(request, 'Терапевт успешно удален.')
+        messages.success(request, 'Массажист успешно удален.')
         return super().delete(request, *args, **kwargs)
