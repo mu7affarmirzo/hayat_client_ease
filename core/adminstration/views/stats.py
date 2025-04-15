@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from openpyxl import Workbook
@@ -62,7 +62,7 @@ def therapist_statistics(request):
         'total_payout': total_payout,
         'clinic_profit': clinic_profit,
     }
-
+    print(referral_stats)
     return render(request, 'adminstration/therapist_stats.html', context)
 
 
@@ -502,6 +502,7 @@ def get_therapist_stats(completed_sessions):
 
         # Add to stats list
         therapist_stats.append({
+            'id': therapist.id,
             'full_name': therapist.full_name,
             'total_amount': therapist_generated_amount,
             'rate': rate,
@@ -552,6 +553,7 @@ def get_referral_docs_stats(completed_sessions):
 
         # Add to stats list
         referral_stats.append({
+            'id': doctor.id,
             'full_name': doctor.full_name,
             'total_amount': ref_doc_generated_amount,
             'rate': rate,
@@ -567,3 +569,125 @@ def get_completed_sessions_sum(completed_sessions):
         result += session.booking.massage.price
 
     return result
+
+
+@login_required
+def therapist_session_details(request, id):
+    """
+    View to display detailed sessions information for a specific therapist
+    in the selected date range.
+    """
+    # Get the date range from the request
+    dates = get_date_range(request)
+    start_date = dates.get('start_date')
+    end_date = dates.get('end_date')
+    date_range = dates.get('date_range')
+
+    # Get the therapist information
+    therapist = get_object_or_404(TherapistModel, id=id)
+
+    # Get all completed sessions for this therapist in the date range
+    sessions = IndividualSessionModel.objects.filter(
+        therapist=therapist,
+        status='completed',
+        completed_at__date__gte=start_date,
+        completed_at__date__lte=end_date
+    ).select_related('booking')
+
+    # Prepare sessions with additional details
+    detailed_sessions = []
+    for session in sessions:
+        booking = session.booking
+        patient = session.booking.patient
+
+        # Get the price for this individual session
+        session_price = get_session_price(session)
+
+        detailed_sessions.append({
+            'id': session.id,
+            'patient_name': f"{patient.full_name}",
+            'date': session.completed_at.strftime('%d/%m/%Y'),
+            'time': session.completed_at.strftime('%H:%M'),
+            'price': session_price,
+            'payout': session_price * (therapist.rate / 100),
+            'booking_id': booking.id if booking else None,
+        })
+
+    context = {
+        'therapist': therapist,
+        'sessions': detailed_sessions,
+        'start_date': start_date.strftime('%d/%m/%Y'),
+        'end_date': end_date.strftime('%d/%m/%Y'),
+        'date_range': date_range,
+        'title': f"Сеансы массажиста: {therapist.full_name}",
+        'is_therapist': True,
+    }
+
+    return render(request, 'adminstration/session_details.html', context)
+
+
+@login_required
+def referral_doctor_session_details(request, doctor_id):
+    """
+    View to display detailed sessions information for a specific referral doctor
+    in the selected date range.
+    """
+    # Get the date range from the request
+    dates = get_date_range(request)
+    start_date = dates.get('start_date')
+    end_date = dates.get('end_date')
+    date_range = dates.get('date_range')
+
+    # Get the doctor information
+    doctor = get_object_or_404(ReferralDoctorModel, id=doctor_id)
+
+    # Get all completed sessions referred by this doctor in the date range
+    sessions = IndividualSessionModel.objects.filter(
+        booking__referral_doctor=doctor,
+        status='completed',
+        completed_at__date__gte=start_date,
+        completed_at__date__lte=end_date
+    ).select_related('booking')
+
+    # Prepare sessions with additional details
+    detailed_sessions = []
+    for session in sessions:
+        booking = session.booking
+        patient = session.booking.patient
+
+        # Get the price for this individual session
+        session_price = get_session_price(session)
+
+        detailed_sessions.append({
+            'id': session.id,
+            'patient_name': patient.full_name,
+            'therapist_name': session.therapist.full_name if session.therapist else "Не назначен",
+            'date': session.completed_at.strftime('%d/%m/%Y'),
+            'time': session.completed_at.strftime('%H:%M'),
+            'price': session_price,
+            'payout': session_price * (doctor.rate / 100),
+            'booking_id': booking.id if booking else None,
+        })
+
+    context = {
+        'doctor': doctor,
+        'sessions': detailed_sessions,
+        'start_date': start_date.strftime('%d/%m/%Y'),
+        'end_date': end_date.strftime('%d/%m/%Y'),
+        'date_range': date_range,
+        'title': f"Направления доктора: {doctor.full_name}",
+        'is_therapist': False,
+    }
+
+    return render(request, 'adminstration/session_details.html', context)
+
+
+# Helper function to calculate the price of an individual session
+def get_session_price(session):
+    """
+    Calculate the price of a single session based on the booking's total price
+    and the number of sessions in the booking.
+    """
+    return session.booking.massage.price
+
+

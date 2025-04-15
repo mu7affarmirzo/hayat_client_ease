@@ -34,5 +34,7 @@ urlpatterns = [
     path('referral-doctor-statistics/export/word/', referral_docs_stats.export_referral_doctor_statistics_word,
          name='export_referral_doctor_statistics_word'),
 
-
+    # New paths for detailed views
+    path('therapist-sessions/<int:id>/', stats.therapist_session_details, name='therapist_session_details'),
+    path('referral-sessions/<int:doctor_id>/', stats.referral_doctor_session_details, name='referral_doctor_session_details'),
 ]

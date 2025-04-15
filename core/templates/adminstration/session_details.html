@@ -1,0 +1,195 @@
+{% load humanize %}
+{% load static %}
+{% load i18n %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hayat Medical Center - {{ title }}</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/fontawesome-free/css/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/icheck-bootstrap/icheck-bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/dist/css/adminlte.min.css' %}">
+    <link rel="stylesheet" href="{% static 'adminlte3_assets/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+</head>
+<body class="hold-transition layout-top-nav">
+<div class="wrapper">
+    <!-- Navbar -->
+    {% include 'snippets/navbar.html' %}
+    <!-- /.navbar -->
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+        <!-- Content Header (Page header) -->
+        <div class="content-header">
+            <div class="container-fluid">
+                <div class="row mb-2">
+                    <div class="col-sm-6">
+                        <h1 class="m-0">{{ title }}</h1>
+                    </div>
+                    <div class="col-sm-6">
+                        <ol class="breadcrumb float-sm-right">
+                            <li class="breadcrumb-item"><a href="{% url 'reception_auth:main_screen' %}">Главная</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'administration:therapist_statistics' %}?date_range={{ date_range }}">Статистика Массажистов</a></li>
+                            <li class="breadcrumb-item active">{{ breadcrumb_title }}</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.content-header -->
+
+        <!-- Main content -->
+        <section class="content">
+            <div class="container-fluid">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{% if message.tags == 'success' %}success{% elif message.tags == 'error' %}danger{% else %}info{% endif %} alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <!-- Summary Card -->
+                <div class="row">
+                    <!-- Person Information Card -->
+                    <div class="col-md-12">
+                        <div class="card card-primary">
+                            <div class="card-header">
+                                <h3 class="card-title">
+                                    {% if is_therapist %}
+                                        Информация о массажисте
+                                    {% else %}
+                                        Информация о докторе-реферале
+                                    {% endif %}
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="info-box bg-light">
+                                            <div class="info-box-content">
+                                                {% if is_therapist %}
+                                                    <span class="info-box-text text-center text-muted">ФИО массажиста</span>
+                                                    <span class="info-box-number text-center text-muted mb-0">{{ therapist.full_name }}</span>
+                                                {% else %}
+                                                    <span class="info-box-text text-center text-muted">ФИО доктора</span>
+                                                    <span class="info-box-number text-center text-muted mb-0">{{ doctor.full_name }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Card -->
+                </div>
+
+                <!-- Sessions/Referrals Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            {% if is_therapist %}
+                                Список сеансов
+                            {% else %}
+                                Список направлений
+                            {% endif %}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <table id="sessions-table" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10px">#</th>
+                                    <th>Пациент</th>
+                                    {% if not is_therapist %}
+                                        <th>Массажист</th>
+                                    {% endif %}
+                                    <th>Дата</th>
+                                    <th>Время</th>
+                                    <th>Сумма (сум)</th>
+                                    <th>К выплате (сум)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in sessions %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ session.patient_name }}</td>
+                                        {% if not is_therapist %}
+                                            <td>{{ session.therapist_name }}</td>
+                                        {% endif %}
+                                        <td>{{ session.date }}</td>
+                                        <td>{{ session.time }}</td>
+                                        <td>{{ session.price|intcomma }} сум</td>
+                                        <td>{{ session.payout|intcomma }} сум</td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="{% if is_therapist %}7{% else %}8{% endif %}" class="text-center">Нет данных для отображения</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="bg-light font-weight-bold">
+                                    <td colspan="{% if is_therapist %}5{% else %}6{% endif %}" class="text-right">Итого:</td>
+                                    <td>{{ total_amount|intcomma }} сум</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    {% include 'snippets/footer.html' %}
+</div>
+
+<!-- jQuery -->
+<script src="{% static 'adminlte3_assets/plugins/jquery/jquery.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/moment/moment.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/daterangepicker/daterangepicker.js' %}"></script>
+<script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'adminlte3_assets/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+
+<!-- Page specific script -->
+<script>
+    $(function () {
+        // Initialize DataTable
+        $('#sessions-table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/1.10.25/i18n/Russian.json"
+            }
+        });
+
+        // Export to Excel (You need to create the corresponding view)
+        $('#export-excel').click(function () {
+            {% if is_therapist %}
+                window.location.href = "#?date_range={{ date_range }}";
+            {% else %}
+                window.location.href = "#?date_range={{ date_range }}";
+            {% endif %}
+        });
+    });
+</script>
+</body>
+</html>
