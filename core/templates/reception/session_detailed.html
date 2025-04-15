@@ -821,7 +821,7 @@
         window.printSessionCheck = function (sessionNumber) {
             // Set current date and time
             var now = new Date();
-            var dateString = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
+            var dateString = "Дата: " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
             $("#check-date").text(dateString);
 
             // Update the session number in the check content
