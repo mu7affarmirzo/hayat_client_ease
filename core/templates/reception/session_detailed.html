@@ -685,8 +685,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Add this modal for withdrawals/refunds -->
-                                <!-- Updated withdrawal modal with better validation and UX -->
+                                <!-- Enhanced withdrawal modal with number formatting -->
                                 <div class="modal fade" id="modal-withdrawal">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -714,17 +713,24 @@
 
                                                     <div class="form-group">
                                                         <label>Сумма возврата</label>
-                                                        <input name="amount" type="number" class="form-control"
-                                                               id="withdrawal_amount" min="1" required>
+                                                        <div class="input-group">
+                                                            <input type="text" class="form-control"
+                                                                   id="formatted_withdrawal_amount"
+                                                                   placeholder="Введите сумму возврата" required>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">сум</span>
+                                                            </div>
+                                                        </div>
+                                                        <!-- Hidden field to store the actual value for submission -->
+                                                        <input type="hidden" name="amount" id="withdrawal_amount">
 
                                                         {% if session.proceeded_sessions < session.quantity %}
                                                             {% with unused_sessions=session.quantity|subtract:session.proceeded_sessions %}
                                                                 {% with session_price=session.total_price|divide:session.quantity %}
                                                                     {% with refundable_amount=unused_sessions|multiply:session_price %}
                                                                         <small class="form-text text-muted">
-                                                                            Максимальная сумма
-                                                                            возврата: {{ refundable_amount|floatformat:0|intcomma }}
-                                                                            сум
+                                                                            Максимальная сумма возврата: <span
+                                                                                class="font-weight-bold">{{ refundable_amount|floatformat:0|intcomma }} сум</span>
                                                                             (За {{ unused_sessions }} неиспользованных
                                                                             сеансов)
                                                                         </small>
@@ -1066,6 +1072,99 @@
 
             // Refresh the page to restore all JS functionality
             location.reload();
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        // Function to format numbers with commas
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Function to unformat number (remove commas)
+        function unformatNumber(num) {
+            return num.replace(/,/g, '');
+        }
+
+        // Handle input in the formatted field
+        $("#formatted_withdrawal_amount").on("input", function () {
+            // Get the current cursor position
+            var cursorPos = this.selectionStart;
+
+            // Get input value and remove non-numeric characters
+            var value = $(this).val().replace(/[^\d]/g, '');
+
+            // Check if value is empty
+            if (value === '') {
+                $(this).val('');
+                $("#withdrawal_amount").val('');
+                return;
+            }
+
+            // Update hidden field with unformatted value
+            $("#withdrawal_amount").val(value);
+
+            // Format the visible input
+            var formattedValue = formatNumber(value);
+            $(this).val(formattedValue);
+
+            // Adjust cursor position based on changes in length
+            var lengthDiff = formattedValue.length - this.value.length;
+            this.setSelectionRange(cursorPos + lengthDiff, cursorPos + lengthDiff);
+
+            // Validate amount
+            validateAmount(parseInt(value));
+        });
+
+        // Function to validate the withdrawal amount
+        function validateAmount(amount) {
+            var maxRefundable = parseInt($("#max_refundable").val()) || 0;
+
+            if (amount > maxRefundable) {
+                $("#formatted_withdrawal_amount").addClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", true);
+
+                // Add validation message if it doesn't exist
+                if ($(".invalid-feedback").length === 0) {
+                    $("#formatted_withdrawal_amount").after('<div class="invalid-feedback">Сумма не может превышать максимальную сумму возврата</div>');
+                }
+            } else if (amount <= 0) {
+                $("#formatted_withdrawal_amount").addClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", true);
+
+                // Add validation message if it doesn't exist
+                if ($(".invalid-feedback").length === 0) {
+                    $("#formatted_withdrawal_amount").after('<div class="invalid-feedback">Сумма должна быть положительной</div>');
+                }
+            } else {
+                $("#formatted_withdrawal_amount").removeClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", false);
+                $(".invalid-feedback").remove();
+            }
+        }
+
+        // Form submission - ensure the hidden field has the unformatted value
+        $("#withdrawal_form").on("submit", function () {
+            var formattedValue = $("#formatted_withdrawal_amount").val();
+            var value = unformatNumber(formattedValue);
+            $("#withdrawal_amount").val(value);
+        });
+
+        // When the modal opens, clear and focus the input
+        $("#modal-withdrawal").on("shown.bs.modal", function () {
+            $("#formatted_withdrawal_amount").val('').focus();
+            $("#withdrawal_amount").val('');
+            $(".invalid-feedback").remove();
+            $("#formatted_withdrawal_amount").removeClass("is-invalid");
+
+            var maxRefundable = parseInt($("#max_refundable").val()) || 0;
+            if (maxRefundable > 0) {
+                $("#submit_withdrawal").prop("disabled", false);
+            } else {
+                $("#submit_withdrawal").prop("disabled", true);
+            }
         });
     });
 </script>
