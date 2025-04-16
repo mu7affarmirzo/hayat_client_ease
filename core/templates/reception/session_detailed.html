@@ -566,19 +566,35 @@
                                                 <th>Тип</th>
                                                 <th>Дата</th>
                                                 <th>Автор</th>
+                                                <th>Операция</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-
-                                            {% for i in payments %}
+                                            {% for payment in payments %}
+                                                <tr class="{% if payment.is_withdrawal %}table-warning{% endif %}">
+                                                    <td>
+                                                        {% if payment.is_withdrawal %}
+                                                            <span class="text-danger">-{{ payment.amount|abs|intcomma }} сум</span>
+                                                        {% else %}
+                                                            <span class="text-success">{{ payment.amount|intcomma }} сум</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ payment.method }}</td>
+                                                    <td>{{ payment.created_at }}</td>
+                                                    <td>{{ payment.created_by.full_name }}</td>
+                                                    <td>
+                                                        {% if payment.is_withdrawal %}
+                                                            <span class="badge badge-warning">Возврат</span>
+                                                        {% else %}
+                                                            <span class="badge badge-success">Пополнение</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% empty %}
                                                 <tr>
-                                                    <td>{{ i.amount|intcomma }} сум</td>
-                                                    <td>{{ i.created_at }}</td>
-                                                    <td>{{ i.method }}</td>
-                                                    <td>{{ i.created_by.full_name }}</td>
+                                                    <td colspan="5" class="text-center">Нет истории платежей</td>
                                                 </tr>
                                             {% endfor %}
-
                                             </tbody>
                                         </table>
                                     </div>
@@ -652,6 +668,93 @@
                                                 </div>
                                             </form>
 
+                                        </div>
+                                        <!-- /.modal-content -->
+                                    </div>
+                                    <!-- /.modal-dialog -->
+                                </div>
+
+                                <!-- Add this inside the card header div where the "Закрыть счет" and "Пополнить депозить" buttons are located -->
+
+                                <div class="card-tools">
+                                    <div class="input-group input-group-sm" style="width: 210px;">
+                                        <a href="#" data-toggle="modal" data-target="#modal-withdrawal"
+                                           class="btn btn-warning float-right" style="margin-right: 7px;">
+                                            <i class="fas fa-money-bill-wave"></i> Возврат средств
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <!-- Add this modal for withdrawals/refunds -->
+                                <div class="modal fade" id="modal-withdrawal">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h4 class="modal-title">Возврат средств</h4>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                        aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+
+                                            <form id="withdrawal_form" method="POST"
+                                                  action="{% url 'reception_registration:withdrawal_payment' session.id %}">
+                                                {% csrf_token %}
+                                                <div class="card-body">
+                                                    <div class="form-group">
+                                                        <label>Тип возврата</label>
+                                                        <select class="form-control select2"
+                                                                style="width: 100%;" name="method">
+                                                            {% for type in methods %}
+                                                                <option value="{{ type.0 }}">{{ type.0 }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="form-group">
+                                                        <label>Сумма возврата</label>
+                                                        <input name="amount" type="number" class="form-control"
+                                                               id="withdrawal_amount" required>
+
+                                                        {% if session.proceeded_sessions < session.quantity %}
+                                                            {% with unused_sessions=session.quantity|subtract:session.proceeded_sessions %}
+                                                                {% with session_price=session.total_price|divide:session.quantity %}
+                                                                    {% with refundable_amount=unused_sessions|multiply:session_price %}
+                                                                        <small class="form-text text-muted">
+                                                                            Максимальная сумма
+                                                                            возврата: {{ refundable_amount|floatformat:0|intcomma }}
+                                                                            сум
+                                                                            (За {{ unused_sessions }} неиспользованных
+                                                                            сеансов)
+                                                                        </small>
+                                                                    {% endwith %}
+                                                                {% endwith %}
+                                                            {% endwith %}
+                                                        {% else %}
+                                                            <small class="form-text text-muted">
+                                                                Внимание: Все сеансы были использованы. Возврат
+                                                                недоступен.
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="alert alert-warning">
+                                                        <i class="fas fa-exclamation-triangle"></i>
+                                                        Возврат создаст отрицательную транзакцию и уменьшит количество
+                                                        оплаченных сеансов.
+                                                    </div>
+                                                </div>
+                                                <!-- /.card-body -->
+
+                                                <div class="modal-footer justify-content-between">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal">
+                                                        Отмена
+                                                    </button>
+                                                    <button type="submit" class="btn btn-warning">
+                                                        Оформить возврат
+                                                    </button>
+                                                </div>
+                                            </form>
                                         </div>
                                         <!-- /.modal-content -->
                                     </div>

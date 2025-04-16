@@ -146,6 +146,40 @@ class SessionBookingModel(models.Model):
     def remaining_payed_amount(self):
         return int(self.total_price-self.overall_payed_amount)
 
+    @property
+    def unused_sessions(self):
+        """Returns the number of sessions that have been paid for but not used"""
+        if self.proceeded_sessions is None or self.quantity is None:
+            return 0
+        return max(0, self.quantity - self.proceeded_sessions)
+
+    @property
+    def session_unit_price(self):
+        """Returns the price of a single session"""
+        if self.quantity is None or self.quantity == 0:
+            return 0
+        return self.total_price / self.quantity
+
+    @property
+    def max_refundable_amount(self):
+        """Calculate the maximum amount that can be refunded based on unused sessions"""
+        return self.unused_sessions * self.session_unit_price
+
+    @property
+    def total_payments(self):
+        """Sum of all positive payments (deposits)"""
+        return self.payments.filter(amount__gt=0).aggregate(sum=Sum('amount'))['sum'] or 0
+
+    @property
+    def total_withdrawals(self):
+        """Sum of all negative payments (withdrawals/refunds)"""
+        return abs(self.payments.filter(amount__lt=0).aggregate(sum=Sum('amount'))['sum'] or 0)
+
+    @property
+    def net_payment_amount(self):
+        """Net payment amount after withdrawals"""
+        return self.total_payments - self.total_withdrawals
+
     def __str__(self):
         return f"{self.patient.full_name} - {self.massage.name} ({self.quantity})"
 
@@ -155,7 +189,7 @@ class SessionBookingModel(models.Model):
 
 class PaymentModel(models.Model):
     session = models.ForeignKey(SessionBookingModel, on_delete=models.CASCADE, related_name="payments")
-    amount = models.PositiveBigIntegerField(null=True, blank=True, default=0)
+    amount = models.BigIntegerField(null=True, blank=True, default=0)
     method = models.CharField(max_length=50, choices=[("наличка", "Наличка"), ("карта", "Карта"), ("online", "Online")])
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
@@ -177,6 +211,18 @@ class PaymentModel(models.Model):
 
     def __str__(self):
         return f"Payment of {self.amount} for {self.session.patient.full_name}"
+
+    @property
+    def is_withdrawal(self):
+        """Returns True if this payment is actually a withdrawal (refund)"""
+        return self.amount < 0
+
+    @property
+    def formatted_amount(self):
+        """Returns a formatted amount with + or - sign for display"""
+        if self.is_withdrawal:
+            return f"-{abs(self.amount):,} сум"
+        return f"{self.amount:,} сум"
 
     class Meta:
         ordering = ('-created_at',)

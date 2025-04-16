@@ -7,7 +7,8 @@ from django.contrib import messages
 
 from core.models import PatientModel, ServiceModel, Account, ServiceTypeModel, SessionBookingModel, PaymentModel, \
     ReferralDoctorModel, TherapistModel, IndividualSessionModel
-from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer
+from core.reception.forms.payments import SingularPaymentCreateSerializer, WholePaymentCreateSerializer, \
+    WithdrawalPaymentForm
 from core.reception.forms.registration import PatientRegistrationForm, SessionForm
 
 
@@ -228,6 +229,52 @@ def whole_payment_view(request, pk):
             payment.save()
             return redirect('reception_auth:main_screen')
         print(form.errors)
+    return redirect('reception_registration:session-detailed', pk=pk)
+
+
+@login_required
+def withdrawal_payment_view(request, pk):
+    """Process a withdrawal/refund for a client who paid for more sessions than used"""
+    session = get_object_or_404(SessionBookingModel, pk=pk)
+
+    # Calculate the maximum refundable amount
+    # This is based on remaining sessions that won't be used
+    if session.proceeded_sessions < session.quantity:
+        unused_sessions = session.quantity - session.proceeded_sessions
+        session_price = session.total_price / session.quantity
+        max_refundable = unused_sessions * session_price
+    else:
+        # If all sessions are used, don't allow withdrawal (you might want to change this logic)
+        max_refundable = 0
+
+    if request.method == 'POST':
+        form = WithdrawalPaymentForm(request.POST)
+        if form.is_valid():
+            # Get absolute withdrawal amount (form returns negative value)
+            withdrawal_amount = abs(form.cleaned_data['amount'])
+
+            # Verify withdrawal amount doesn't exceed what's refundable
+            if withdrawal_amount > max_refundable:
+                messages.error(request, f"Сумма возврата не может превышать {max_refundable:,.0f} сум")
+                return redirect('reception_registration:session-detailed', pk=pk)
+
+            # Save withdrawal as negative payment
+            payment = form.save(commit=False)
+            payment.created_by = request.user
+            payment.session = session
+            payment.save()
+
+            # Update session quantity if needed (optional)
+            if session.proceeded_sessions < session.quantity:
+                session.quantity = session.proceeded_sessions
+                session.save(update_fields=['quantity'])
+
+            messages.success(request, f"Возврат на сумму {withdrawal_amount:,.0f} сум успешно произведен")
+            return redirect('reception_registration:session-detailed', pk=pk)
+
+        print(form.errors)
+
+    # For GET requests or invalid forms, just redirect back to the session detail
     return redirect('reception_registration:session-detailed', pk=pk)
 
 
