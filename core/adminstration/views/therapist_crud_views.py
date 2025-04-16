@@ -13,20 +13,20 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_superuser
 
 
-class TherapistListView(LoginRequiredMixin, SuperuserRequiredMixin, ListView):
+class TherapistListView(LoginRequiredMixin, ListView):
     model = TherapistModel
     template_name = 'adminstration/therapists/therapist_list.html'
     context_object_name = 'therapists'
     ordering = ['l_name', 'f_name']
 
 
-class TherapistDetailView(LoginRequiredMixin, SuperuserRequiredMixin, DetailView):
+class TherapistDetailView(LoginRequiredMixin, DetailView):
     model = TherapistModel
     template_name = 'adminstration/therapists/therapist_detail.html'
     context_object_name = 'therapist'
 
 
-class TherapistCreateView(LoginRequiredMixin, SuperuserRequiredMixin, CreateView):
+class TherapistCreateView(LoginRequiredMixin, CreateView):
     model = TherapistModel
     template_name = 'adminstration/therapists/therapist_form.html'
     fields = ['f_name', 'l_name', 'm_name', 'phone_number', 'sex', 'rate']
@@ -37,7 +37,7 @@ class TherapistCreateView(LoginRequiredMixin, SuperuserRequiredMixin, CreateView
         return super().form_valid(form)
 
 
-class TherapistUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView):
+class TherapistUpdateView(LoginRequiredMixin, UpdateView):
     model = TherapistModel
     template_name = 'adminstration/therapists/therapist_form.html'
     fields = ['f_name', 'l_name', 'm_name', 'phone_number', 'sex', 'rate']
@@ -51,7 +51,7 @@ class TherapistUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView
         return super().form_valid(form)
 
 
-class TherapistDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, DeleteView):
+class TherapistDeleteView(LoginRequiredMixin, DeleteView):
     model = TherapistModel
     template_name = 'adminstration/therapists/therapist_confirm_delete.html'
     context_object_name = 'therapist'
