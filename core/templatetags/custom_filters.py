@@ -101,9 +101,9 @@ def subtract(value, arg):
             return 0
 
 @register.filter
-def abs(value):
+def absolute(value):
     """Returns the absolute value"""
     try:
-        return abs(value)
+        return abs(value)  # Now uses Python's built-in abs()
     except (ValueError, TypeError):
         return value

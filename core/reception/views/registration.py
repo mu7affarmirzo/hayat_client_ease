@@ -244,37 +244,42 @@ def withdrawal_payment_view(request, pk):
         session_price = session.total_price / session.quantity
         max_refundable = unused_sessions * session_price
     else:
-        # If all sessions are used, don't allow withdrawal (you might want to change this logic)
+        # If all sessions are used, don't allow withdrawal
         max_refundable = 0
 
     if request.method == 'POST':
         form = WithdrawalPaymentForm(request.POST)
         if form.is_valid():
-            # Get absolute withdrawal amount (form returns negative value)
-            withdrawal_amount = abs(form.cleaned_data['amount'])
+            # Get the withdrawal amount (user enters positive value)
+            withdrawal_amount = form.cleaned_data['amount']
 
             # Verify withdrawal amount doesn't exceed what's refundable
             if withdrawal_amount > max_refundable:
                 messages.error(request, f"Сумма возврата не может превышать {max_refundable:,.0f} сум")
                 return redirect('reception_registration:session-detailed', pk=pk)
 
-            # Save withdrawal as negative payment
+            # Save withdrawal (form's save method will convert to negative)
             payment = form.save(commit=False)
             payment.created_by = request.user
             payment.session = session
             payment.save()
 
-            # Update session quantity if needed (optional)
-            if session.proceeded_sessions < session.quantity:
-                session.quantity = session.proceeded_sessions
-                session.save(update_fields=['quantity'])
+            # You might want to update session quantity to match used sessions
+            # Uncomment if you want this behavior
+            # if session.proceeded_sessions < session.quantity:
+            #     session.quantity = session.proceeded_sessions
+            #     session.save(update_fields=['quantity'])
 
             messages.success(request, f"Возврат на сумму {withdrawal_amount:,.0f} сум успешно произведен")
             return redirect('reception_registration:session-detailed', pk=pk)
+        else:
+            print(form.errors)
+            # If the form has errors, display them
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
 
-        print(form.errors)
-
-    # For GET requests or invalid forms, just redirect back to the session detail
+    # For GET requests or invalid forms, redirect back to the session detail
     return redirect('reception_registration:session-detailed', pk=pk)
 
 

@@ -574,7 +574,7 @@
                                                 <tr class="{% if payment.is_withdrawal %}table-warning{% endif %}">
                                                     <td>
                                                         {% if payment.is_withdrawal %}
-                                                            <span class="text-danger">-{{ payment.amount|abs|intcomma }} сум</span>
+                                                            <span class="text-danger">-{{ payment.amount|absolute|intcomma }} сум</span>
                                                         {% else %}
                                                             <span class="text-success">{{ payment.amount|intcomma }} сум</span>
                                                         {% endif %}
@@ -686,6 +686,7 @@
                                 </div>
 
                                 <!-- Add this modal for withdrawals/refunds -->
+                                <!-- Updated withdrawal modal with better validation and UX -->
                                 <div class="modal fade" id="modal-withdrawal">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -704,7 +705,7 @@
                                                     <div class="form-group">
                                                         <label>Тип возврата</label>
                                                         <select class="form-control select2"
-                                                                style="width: 100%;" name="method">
+                                                                style="width: 100%;" name="method" required>
                                                             {% for type in methods %}
                                                                 <option value="{{ type.0 }}">{{ type.0 }}</option>
                                                             {% endfor %}
@@ -714,7 +715,7 @@
                                                     <div class="form-group">
                                                         <label>Сумма возврата</label>
                                                         <input name="amount" type="number" class="form-control"
-                                                               id="withdrawal_amount" required>
+                                                               id="withdrawal_amount" min="1" required>
 
                                                         {% if session.proceeded_sessions < session.quantity %}
                                                             {% with unused_sessions=session.quantity|subtract:session.proceeded_sessions %}
@@ -727,21 +728,24 @@
                                                                             (За {{ unused_sessions }} неиспользованных
                                                                             сеансов)
                                                                         </small>
+                                                                        <input type="hidden" id="max_refundable"
+                                                                               value="{{ refundable_amount|floatformat:0 }}">
                                                                     {% endwith %}
                                                                 {% endwith %}
                                                             {% endwith %}
                                                         {% else %}
-                                                            <small class="form-text text-muted">
-                                                                Внимание: Все сеансы были использованы. Возврат
-                                                                недоступен.
+                                                            <small class="form-text text-danger">
+                                                                <i class="fas fa-exclamation-circle"></i>
+                                                                Все сеансы были использованы. Возврат невозможен.
                                                             </small>
+                                                            <input type="hidden" id="max_refundable" value="0">
                                                         {% endif %}
                                                     </div>
 
                                                     <div class="alert alert-warning">
                                                         <i class="fas fa-exclamation-triangle"></i>
-                                                        Возврат создаст отрицательную транзакцию и уменьшит количество
-                                                        оплаченных сеансов.
+                                                        Возврат средств создаст отрицательную транзакцию и уменьшит
+                                                        общую сумму оплаты.
                                                     </div>
                                                 </div>
                                                 <!-- /.card-body -->
@@ -750,7 +754,9 @@
                                                     <button type="button" class="btn btn-default" data-dismiss="modal">
                                                         Отмена
                                                     </button>
-                                                    <button type="submit" class="btn btn-warning">
+                                                    <button type="submit" class="btn btn-warning"
+                                                            id="submit_withdrawal"
+                                                            {% if session.proceeded_sessions >= session.quantity %}disabled{% endif %}>
                                                         Оформить возврат
                                                     </button>
                                                 </div>
@@ -921,6 +927,38 @@
 <script src="{% static 'adminlte3_assets/plugins/dropzone/min/dropzone.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/dist/js/adminlte.min.js' %}"></script>
 <script src="{% static 'adminlte3_assets/dist/js/pages/dashboard.js' %}"></script>
+
+<!-- Add this JavaScript for client-side validation -->
+<script>
+    $(document).ready(function () {
+        $("#withdrawal_amount").on("input", function () {
+            var amount = parseFloat($(this).val()) || 0;
+            var maxRefundable = parseFloat($("#max_refundable").val()) || 0;
+
+            if (amount > maxRefundable) {
+                $(this).addClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", true);
+
+                // Add validation message if it doesn't exist
+                if ($(".invalid-feedback").length === 0) {
+                    $(this).after('<div class="invalid-feedback">Сумма не может превышать максимальную сумму возврата</div>');
+                }
+            } else if (amount <= 0) {
+                $(this).addClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", true);
+
+                // Add validation message if it doesn't exist
+                if ($(".invalid-feedback").length === 0) {
+                    $(this).after('<div class="invalid-feedback">Сумма должна быть положительной</div>');
+                }
+            } else {
+                $(this).removeClass("is-invalid");
+                $("#submit_withdrawal").prop("disabled", false);
+                $(".invalid-feedback").remove();
+            }
+        });
+    });
+</script>
 
 <!-- Individual sessions script -->
 <script>
