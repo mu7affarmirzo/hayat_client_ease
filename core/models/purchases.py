@@ -215,6 +215,8 @@ class PaymentModel(models.Model):
     @property
     def is_withdrawal(self):
         """Returns True if this payment is actually a withdrawal (refund)"""
+        if self.amount is None:
+            return False
         return self.amount < 0
 
     @property
