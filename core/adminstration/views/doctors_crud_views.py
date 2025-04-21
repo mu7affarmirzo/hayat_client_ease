@@ -13,7 +13,7 @@ class SuperuserRequiredMixin(UserPassesTestMixin):
         return self.request.user.is_superuser
 
 
-class ReferralDoctorListView(LoginRequiredMixin, SuperuserRequiredMixin, ListView):
+class ReferralDoctorListView(LoginRequiredMixin, ListView):
     model = ReferralDoctorModel
     template_name = 'adminstration/doctors/doctor_list.html'
     context_object_name = 'doctors'
@@ -25,13 +25,13 @@ class ReferralDoctorListView(LoginRequiredMixin, SuperuserRequiredMixin, ListVie
         return queryset
 
 
-class ReferralDoctorDetailView(LoginRequiredMixin, SuperuserRequiredMixin, DetailView):
+class ReferralDoctorDetailView(LoginRequiredMixin, DetailView):
     model = ReferralDoctorModel
     template_name = 'adminstration/doctors/doctor_detail.html'
     context_object_name = 'doctor'
 
 
-class ReferralDoctorCreateView(LoginRequiredMixin, SuperuserRequiredMixin, CreateView):
+class ReferralDoctorCreateView(LoginRequiredMixin, CreateView):
     model = ReferralDoctorModel
     template_name = 'adminstration/doctors/doctor_form.html'
     fields = ['f_name', 'mid_name', 'l_name', 'email', 'gender', 'rate', 'is_active']
@@ -43,7 +43,7 @@ class ReferralDoctorCreateView(LoginRequiredMixin, SuperuserRequiredMixin, Creat
         return super().form_valid(form)
 
 
-class ReferralDoctorUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, UpdateView):
+class ReferralDoctorUpdateView(LoginRequiredMixin, UpdateView):
     model = ReferralDoctorModel
     template_name = 'adminstration/doctors/doctor_form.html'
     fields = ['f_name', 'mid_name', 'l_name', 'email', 'gender', 'rate', 'is_active']
@@ -58,7 +58,7 @@ class ReferralDoctorUpdateView(LoginRequiredMixin, SuperuserRequiredMixin, Updat
         return super().form_valid(form)
 
 
-class ReferralDoctorDeleteView(LoginRequiredMixin, SuperuserRequiredMixin, DeleteView):
+class ReferralDoctorDeleteView(LoginRequiredMixin, DeleteView):
     model = ReferralDoctorModel
     template_name = 'adminstration/doctors/doctor_confirm_delete.html'
     context_object_name = 'doctor'
