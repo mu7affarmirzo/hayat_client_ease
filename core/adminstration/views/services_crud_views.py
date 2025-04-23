@@ -9,7 +9,6 @@ from core.adminstration.forms.service_crud_forms import ServiceForm, ServiceType
 
 # Service Type Views
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_type_list(request):
     service_types = ServiceTypeModel.objects.all().order_by('type')
     return render(request, 'adminstration/services/service_type_list.html', {
@@ -18,7 +17,6 @@ def service_type_list(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_type_detail(request, pk):
     service_type = get_object_or_404(ServiceTypeModel, pk=pk)
     services = service_type.services.all()
@@ -29,7 +27,6 @@ def service_type_detail(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_type_create(request):
     if request.method == "POST":
         form = ServiceTypeForm(request.POST)
@@ -49,7 +46,6 @@ def service_type_create(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_type_update(request, pk):
     service_type = get_object_or_404(ServiceTypeModel, pk=pk)
     if request.method == "POST":
@@ -70,7 +66,6 @@ def service_type_update(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_type_delete(request, pk):
     service_type = get_object_or_404(ServiceTypeModel, pk=pk)
     if request.method == "POST":
@@ -85,7 +80,6 @@ def service_type_delete(request, pk):
 
 # Service Views
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_list(request):
     services = ServiceModel.objects.all().order_by('type', 'name')
     return render(request, 'adminstration/services/service_list.html', {
@@ -94,7 +88,6 @@ def service_list(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_detail(request, pk):
     service = get_object_or_404(ServiceModel, pk=pk)
     return render(request, 'adminstration/services/service_detail.html', {
@@ -103,7 +96,6 @@ def service_detail(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_create(request):
     if request.method == "POST":
         form = ServiceForm(request.POST)
@@ -123,7 +115,6 @@ def service_create(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_update(request, pk):
     service = get_object_or_404(ServiceModel, pk=pk)
     if request.method == "POST":
@@ -144,7 +135,6 @@ def service_update(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_superuser)
 def service_delete(request, pk):
     service = get_object_or_404(ServiceModel, pk=pk)
     if request.method == "POST":
