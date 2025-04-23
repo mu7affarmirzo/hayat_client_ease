@@ -160,7 +160,6 @@
                         </ul>
                     </li>
 
-                    {% if request.user.is_superuser %}
                         <!-- Administration Section -->
                         <li class="nav-header">АДМИНИСТРИРОВАНИЕ</li>
 
@@ -254,6 +253,7 @@
                                     <i class="right fas fa-angle-left"></i>
                                 </p>
                             </a>
+                            {% if user.is_superuser %}
                             <ul class="nav nav-treeview">
                                 <li class="nav-item">
                                     <a href="{% url 'administration:therapist_statistics' %}" class="nav-link">
@@ -268,8 +268,8 @@
                                     </a>
                                 </li>
                             </ul>
+                            {% endif %}
                         </li>
-                    {% endif %}
 
                 </ul>
             </nav>
