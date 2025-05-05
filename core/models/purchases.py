@@ -92,7 +92,10 @@ class IndividualSessionModel(models.Model):
         unique_together = ['booking', 'session_number']  # Ensure no duplicate session numbers
 
     def __str__(self):
-        return f"{self.booking.patient.full_name} - Сеанс #{self.session_number}"
+        try:
+            return f"{self.booking.patient.full_name} - Сеанс #{self.session_number}"
+        except:
+            return str(self.session_number)
 
 
 class SessionBookingModel(models.Model):
@@ -181,7 +184,10 @@ class SessionBookingModel(models.Model):
         return self.total_payments - self.total_withdrawals
 
     def __str__(self):
-        return f"{self.patient.full_name} - {self.massage.name} ({self.quantity})"
+        try:
+            return f"{self.patient.full_name} - {self.massage.name} ({self.quantity})"
+        except:
+            return str(self.id)
 
     class Meta:
         ordering = ['-created_at']
@@ -210,7 +216,11 @@ class PaymentModel(models.Model):
             self.session.save()
 
     def __str__(self):
-        return f"Payment of {self.amount} for {self.session.patient.full_name}"
+        try:
+            return f"Payment of {self.amount} for {self.session.patient.full_name}"
+        except:
+            return str(self.id)
+
 
     @property
     def is_withdrawal(self):
