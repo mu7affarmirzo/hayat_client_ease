@@ -41,11 +41,14 @@ class PatientModel(models.Model):
     @property
     def full_name(self):
         try:
-            mid_name = self.mid_name
-        except:
-            mid_name = ''
+            try:
+                mid_name = self.mid_name
+            except:
+                mid_name = ''
 
-        return f"{self.f_name} {self.l_name} {mid_name}"
+            return f"{self.f_name} {self.l_name} {mid_name}"
+        except:
+            return ""
 
     def __str__(self):
 
