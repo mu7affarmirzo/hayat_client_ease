@@ -53,8 +53,11 @@ def payment_dashboard(request):
         if filter_form.cleaned_data.get('patient_search'):
             search_term = filter_form.cleaned_data['patient_search']
             payments = payments.filter(
-                Q(session__patient__full_name__icontains=search_term) |
-                Q(session__patient__phone__icontains=search_term)
+                Q(session__patient__f_name__icontains=search_term) |
+                Q(session__patient__mid_name__icontains=search_term) |
+                Q(session__patient__l_name__icontains=search_term) |
+                Q(session__patient__home_phone_number__icontains=search_term) |
+                Q(session__patient__mobile_phone_number__icontains=search_term)
             )
 
         # Created by filter
