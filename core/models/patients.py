@@ -46,7 +46,7 @@ class PatientModel(models.Model):
             except:
                 mid_name = ''
 
-            return f"{self.l_name} {self.f_name} {mid_name}"
+            return f"{mid_name} {self.f_name} {self.l_name}"
         except:
             return ""
 
