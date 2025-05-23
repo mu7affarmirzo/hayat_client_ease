@@ -22,6 +22,9 @@
                 <li class="nav-item">
                     <a href="{% url 'reception_auth:not_paid_list' %}" class="nav-link">Неоплаченные</a>
                 </li>
+                <li class="nav-item">
+                    <a href="{% url 'payment_dashboard' %}" class="nav-link">Оплаты</a>
+                </li>
                 {% if request.user.is_superuser %}
                     <li class="nav-item">
                         <a href="{% url 'administration:therapist_statistics' %}" class="nav-link">Статистика</a>

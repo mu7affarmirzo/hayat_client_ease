@@ -18,7 +18,8 @@ class ReferralDoctorModel(models.Model):
     created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    modified_by = models.ForeignKey(Account, related_name="modf_docs_by_user", on_delete=models.SET_NULL, null=True, blank=True)
+    modified_by = models.ForeignKey(Account, related_name="modf_docs_by_user", on_delete=models.SET_NULL, null=True,
+                                    blank=True)
     gender = models.BooleanField()
 
     rate = models.IntegerField(null=True, blank=True, default=15)
@@ -108,9 +109,11 @@ class SessionBookingModel(models.Model):
 
     patient = models.ForeignKey(PatientModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
     massage = models.ForeignKey(ServiceModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
-    therapist = models.ForeignKey(TherapistModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
+    therapist = models.ForeignKey(TherapistModel, on_delete=models.SET_NULL, related_name="sessions", null=True,
+                                  blank=True)
 
-    referral_doctor = models.ForeignKey(ReferralDoctorModel, on_delete=models.SET_NULL, related_name="sessions", null=True, blank=True)
+    referral_doctor = models.ForeignKey(ReferralDoctorModel, on_delete=models.SET_NULL, related_name="sessions",
+                                        null=True, blank=True)
 
     quantity = models.PositiveIntegerField(default=1, null=True, blank=True)
     proceeded_sessions = models.PositiveIntegerField(default=0, null=True, blank=True)
@@ -128,15 +131,21 @@ class SessionBookingModel(models.Model):
                               default='active', verbose_name=_('Статус'))
 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True, related_name="created_sessions")
+    created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True,
+                                   related_name="created_sessions")
     updated_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True, related_name="updated_sessions")
+    updated_by = models.ForeignKey(Account, on_delete=models.SET_NULL, blank=True, null=True,
+                                   related_name="updated_sessions")
 
     def save(self, *args, **kwargs):
         # Calculate total price before saving
-        self.total_price = int((self.massage.price * self.quantity) * (100 - self.discount)/100)
+        self.total_price = int((self.massage.price * self.quantity) * (100 - self.discount) / 100)
         self.pre_discount_price = self.massage.price * self.quantity
         super().save(*args, **kwargs)
+
+    @property
+    def get_canceled_sessions(self):
+        return len(self.individual_sessions.filter(status='cancelled'))
 
     @property
     def overall_payed_amount(self):
@@ -147,7 +156,11 @@ class SessionBookingModel(models.Model):
 
     @property
     def remaining_payed_amount(self):
-        return int(self.total_price-self.overall_payed_amount)
+        return int(self.total_price - self.overall_payed_amount - self.cancelled_sessions_amount)
+
+    @property
+    def actual_amount(self):
+        return int(self.total_price - self.cancelled_sessions_amount)
 
     @property
     def unused_sessions(self):
@@ -167,6 +180,10 @@ class SessionBookingModel(models.Model):
     def max_refundable_amount(self):
         """Calculate the maximum amount that can be refunded based on unused sessions"""
         return self.unused_sessions * self.session_unit_price
+
+    @property
+    def cancelled_sessions_amount(self):
+        return self.session_unit_price * len(self.individual_sessions.filter(status='cancelled'))
 
     @property
     def total_payments(self):
@@ -220,7 +237,6 @@ class PaymentModel(models.Model):
             return f"Payment of {self.amount} for {self.session.patient.full_name}"
         except:
             return str(self.id)
-
 
     @property
     def is_withdrawal(self):
@@ -315,5 +331,3 @@ def update_booking_proceeded_sessions(sender, instance, **kwargs):
         booking.proceeded_sessions = completed_count
         # Use update_fields to avoid triggering other signals
         booking.save(update_fields=['proceeded_sessions'])
-
-

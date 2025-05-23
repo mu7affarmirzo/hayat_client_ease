@@ -108,6 +108,8 @@ def close_session(request, session_id):
             session = SessionBookingModel.objects.get(id=session_id)
             if session.status == 'active':
                 session.status = 'closed'
+                if session.remaining_payed_amount == 0:
+                    session.is_paid = True
                 session.save()
                 messages.success(request, f"Сеанс {session.id} для {session.patient.full_name} был успешно закрыт.")
             else:

@@ -114,22 +114,22 @@ def cancel_individual_session(request, booking_pk, session_number):
         session = booking.individual_sessions.get(session_number=session_number)
 
         # Only completed sessions can be canceled
-        if session.status != 'completed':
-            messages.error(request, f'Сеанс #{session_number} не является проведенным и не может быть отменен')
-            return redirect('reception_registration:session-detailed', pk=booking_pk)
+        # if session.status != 'completed':
+        #     messages.error(request, f'Сеанс #{session_number} не является проведенным и не может быть отменен')
+        #     return redirect('reception_registration:session-detailed', pk=booking_pk)
 
         # Check if this is the last completed session
         last_completed = booking.individual_sessions.filter(
             status='completed'
         ).order_by('-session_number').first()
 
-        if last_completed.session_number != session.session_number:
-            messages.error(request, 'Можно отменить только последний проведенный сеанс')
-            return redirect('reception_registration:session-detailed', pk=booking_pk)
+        # if last_completed.session_number != session.session_number:
+        #     messages.error(request, 'Можно отменить только последний проведенный сеанс')
+        #     return redirect('reception_registration:session-detailed', pk=booking_pk)
 
         # Mark as pending again
-        session.status = 'pending'
-        session.completed_at = None
+        session.status = 'cancelled'
+        session.completed_at = timezone.now()
         session.save()
 
         # Manually update the proceeded_sessions count
