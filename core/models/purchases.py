@@ -94,7 +94,7 @@ class IndividualSessionModel(models.Model):
 
     def __str__(self):
         try:
-            return f"{self.booking.patient.full_name} - Сеанс #{self.session_number}"
+            return f"{self.booking} |-| {self.booking.patient.full_name} - Сеанс #{self.session_number}"
         except:
             return str(self.session_number)
 
@@ -202,7 +202,7 @@ class SessionBookingModel(models.Model):
 
     def __str__(self):
         try:
-            return f"{self.patient.full_name} - {self.massage.name} ({self.quantity})"
+            return f"{self.id} - {self.patient.full_name} - {self.massage.name} ({self.quantity})"
         except:
             return str(self.id)
 
