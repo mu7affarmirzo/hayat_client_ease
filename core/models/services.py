@@ -33,4 +33,7 @@ class ServiceModel(models.Model):
     )
 
     def __str__(self):
-        return str(self.name)
+        if self.price:
+            return f"{str(self.name)} - {self.price}"
+        else:
+            return str(self.name)
