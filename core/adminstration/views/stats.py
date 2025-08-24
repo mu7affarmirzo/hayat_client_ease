@@ -566,7 +566,10 @@ def get_referral_docs_stats(completed_sessions):
 def get_completed_sessions_sum(completed_sessions):
     result = 0
     for session in completed_sessions:
-        result += session.booking.massage.price
+        try:
+            result += session.booking.massage.price
+        except:
+            result += 0
 
     return result
 
